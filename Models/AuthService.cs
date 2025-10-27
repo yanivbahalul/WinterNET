@@ -20,7 +20,7 @@ namespace HelloWorldWeb.Models
     {
         public User() : base() { }
         
-        [Column("Username")]
+        [PrimaryKey("Username")]
         public string Username { get; set; } = "";
         
         [Column("Password")]

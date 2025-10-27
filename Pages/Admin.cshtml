@@ -17,6 +17,23 @@
             font-family: "Segoe UI", sans-serif;
             padding: 40px;
             direction: rtl;
+            margin: 0;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(90, 169, 230, 0.03) 2px,
+                    rgba(90, 169, 230, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 0;
         }
         h1 { font-size: 32px; margin-bottom: 20px; }
         h2 { margin-top: 40px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #ffd700; }

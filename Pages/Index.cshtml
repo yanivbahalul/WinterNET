@@ -1,0 +1,169 @@
+@page
+@model HelloWorldWeb.Pages.IndexModel
+@{
+    ViewData["Title"] = "Quiz";
+}
+
+<link rel="stylesheet" href="/css/site.css" />
+
+<!-- רקע -->
+<img src="/assets/background.gif" alt="רקע" class="background-gif" />
+<iframe src="/logo/fsociety_matrix_blue.html" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; border: none; pointer-events: none; opacity: 0.5;"></iframe>
+
+<!-- לוגו -->
+<div class="logo-header">
+    <div style="color: #DF2D2F; font-family: monospace; font-size: 3vh; text-shadow: 0 0 8px rgba(223,45,47,0.7), 0 0 2px rgba(223,45,47,1);">
+        WINTERNET QUIZ
+    </div>
+</div>
+
+<!-- כפתור התנתקות  -->
+<a href="/Logout" class="next-question-btn" style="position: fixed; top: 20px; left: 20px; text-decoration: none;">🚪 התנתקות</a>
+
+<!-- כפתור טבלת מובילים + ניהול -->
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
+    <a href="/Leaderboard" class="next-question-btn">🏆 מובילים</a>
+    @if (Model.Username == "Admin")
+    {
+        <a href="/Admin" class="next-question-btn">🛠️ ניהול</a>
+    }
+</div>
+
+<!-- שם משתמש מוצג -->
+<p style="color: #DF2D2F; text-align: center; margin-top: 60px; font-size: 18px;">
+    👤 Logged in as <strong>@Model.Username</strong>
+</p>
+
+<!-- כמות משתמשים מחוברים -->
+<p style="color: #DF2D2F; text-align: center; margin-bottom: 10px; font-size: 16px;">
+    🔴 מחוברים כעת: <strong id="online-count">@Model.OnlineCount</strong>
+</p>
+
+<!-- תוכן ראשי -->
+<div class="quiz-container">
+    <img src="/@Model.QuestionImage" alt="שאלה" loading="lazy" />
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="questionImage" value="@Model.QuestionImage" />
+        <input type="hidden" name="answersJson" value='@Newtonsoft.Json.JsonConvert.SerializeObject(Model.ShuffledAnswers)' />
+
+        <div class="answers">
+            @foreach (var answer in Model.ShuffledAnswers)
+            {
+                var answerClass = "";
+                if (Model.AnswerChecked)
+                {
+                    answerClass = answer.Key == "correct" ? "correct" :
+                                  (Model.SelectedAnswer == answer.Key ? "incorrect" : "");
+                }
+
+                <button type="submit"
+                        name="answer"
+                        value="@answer.Key"
+                        class="answer-btn @answerClass"
+                        @(Model.AnswerChecked ? "disabled" : "")>
+                    <img src="/@answer.Value" alt="תשובה" loading="lazy" />
+                </button>
+            }
+        </div>
+    </form>
+
+    @if (Model.AnswerChecked)
+    {
+        <p style="margin-top:15px; font-size:18px; color:@(Model.IsCorrect ? "#32cd32" : "#ff4c4c"); font-weight: bold;">
+            @(Model.IsCorrect ? "תשובה נכונה!" : "תשובה שגויה")
+        </p>
+    }
+
+    <div class="button-row">
+        <form method="get">
+            <button class="next-question-btn">שאלה הבאה</button>
+        </form>
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="reset" value="1" />
+            <button class="next-question-btn" style="background-color: #aa3333;">איפוס שאלות</button>
+        </form>
+    </div>
+</div>
+
+<!-- סטטיסטיקה תחתונה -->
+<div id="stats-toggle" onclick="toggleStats()">⬆️</div>
+
+<div id="stats-panel" class="hidden">
+    <h3>📊 סטטיסטיקה אישית</h3>
+    <ul>
+        <li>✅ תשובות נכונות: <span id="stat-correct">0</span></li>
+        <li>📋 שאלות שנענו: <span id="stat-total">0</span></li>
+        <li>📈 אחוז הצלחה: <span id="stat-success">0%</span></li>
+    </ul>
+</div>
+
+<script>
+    async function fetchStats() {
+        try {
+            const res = await fetch('/Stats?_=' + new Date().getTime());
+            const data = await res.json();
+            if (data.correct !== undefined) {
+                document.getElementById('stat-correct').innerText = data.correct;
+                document.getElementById('stat-total').innerText = data.total;
+                document.getElementById('stat-success').innerText = data.successRate + '%';
+            }
+            if (data.online !== undefined) {
+                document.getElementById('online-count').innerText = data.online;
+            }
+        } catch (e) {
+            console.warn("Failed to fetch stats:", e);
+        }
+    }
+
+    function toggleStats() {
+        const panel = document.getElementById('stats-panel');
+        const toggle = document.getElementById('stats-toggle');
+        const isOpen = !panel.classList.contains('hidden');
+        panel.classList.toggle('hidden');
+        toggle.innerText = isOpen ? '⬆️' : '⬇️';
+        if (!isOpen) fetchStats();
+    }
+
+    window.addEventListener("load", fetchStats);
+    setInterval(fetchStats, 15000);
+
+    // ✅ עדכון מחוברים אחרי כל שליחה
+    document.querySelectorAll("form").forEach(form => {
+        form.addEventListener("submit", () => setTimeout(fetchStats, 2000));
+    });
+</script>
+
+<!-- הגנה מפתיחת DevTools -->
+<script>
+(function () {
+    let triggered = false;
+    const element = new Image();
+
+    Object.defineProperty(element, 'id', {
+        get: function () {
+            if (!triggered) {
+                triggered = true;
+                window.location.href = '/Cheater';
+            }
+        }
+    });
+
+    setInterval(function () {
+        triggered = false;
+        console.log(element);
+    }, 1000);
+
+    window.addEventListener('keydown', function (e) {
+        if (
+            e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase()))
+        ) {
+            window.location.href = '/Cheater';
+        }
+    });
+})();
+</script>

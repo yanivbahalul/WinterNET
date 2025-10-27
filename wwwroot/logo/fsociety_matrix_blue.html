@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>fsociety — Matrix Blue</title>
+<style>
+  :root {
+    --bg: #000000;
+    --main: #5AA9E6;
+    --dim: #BEB7A4;
+  }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--main);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  .stage {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.04) 0px,
+      rgba(255,255,255,0.04) 1px,
+      transparent 2px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    animation: scan 12s linear infinite;
+  }
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  #rain {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.25;
+  }
+  pre#art {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 24px 28px;
+    line-height: 1.05;
+    letter-spacing: 0.5px;
+    white-space: pre;
+    color: var(--main);
+    text-shadow: 0 0 8px rgba(90,169,230,0.7), 0 0 2px rgba(90,169,230,1);
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(90,169,230,0.2);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(90,169,230,0.05) inset, 0 10px 40px rgba(0,0,0,0.6);
+    animation: floaty 7s ease-in-out infinite, flicker 3.5s steps(1, end) infinite;
+  }
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0) skewX(0deg); }
+    50%      { transform: translateY(-8px) skewX(0.3deg); }
+  }
+  @keyframes flicker {
+    0%,92%,96%,100% { opacity: 1; }
+    94% { opacity: 0.95; }
+    98% { opacity: 0.9; }
+  }
+  pre#art::before, pre#art::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    white-space: pre;
+    overflow: hidden;
+    mix-blend-mode: screen;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+  pre#art::before {
+    color: var(--main);
+    text-shadow: -1px 0 4px rgba(90,169,230,0.8);
+    animation: glitch1 3.2s infinite linear alternate-reverse;
+  }
+  pre#art::after {
+    color: var(--dim);
+    text-shadow: 1px 0 6px rgba(190,183,164,0.8);
+    animation: glitch2 4s infinite linear alternate-reverse;
+  }
+  @keyframes glitch1 {
+    0% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+    25% { clip-path: inset(10% 0 70% 0); transform: translateX(-1px); }
+    50% { clip-path: inset(40% 0 30% 0); transform: translateX(1px); }
+    75% { clip-path: inset(80% 0 0 0); transform: translateX(-2px); }
+    100%{ clip-path: inset(0 0 0 0); transform: translateX(0); }
+  }
+  @keyframes glitch2 {
+    0% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+    20% { clip-path: inset(70% 0 10% 0); transform: translateX(1px); }
+    60% { clip-path: inset(20% 0 60% 0); transform: translateX(-2px); }
+    100%{ clip-path: inset(0 0 0 0); transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <canvas id="rain"></canvas>
+    <pre id="art" data-text="$ cat fsociety00.dat
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XX                                                                          XX
+XX   MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMMMMMMssssssssssssssssssssssssssMMMMMMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMss'''                          '''ssMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMyy''                                    ''yyMMMMMMMMMMMM   XX
+XX   MMMMMMMMyy''                                            ''yyMMMMMMMM   XX
+XX   MMMMMy''                                                    ''yMMMMM   XX
+XX   MMMy'                                                          'yMMM   XX
+XX   Mh'                                                              'hM   XX
+XX   -                                                                  -   XX
+XX                                                                          XX
+XX   ::                                                                ::   XX
+XX   MMhh.        ..hhhhhh..                      ..hhhhhh..        .hhMM   XX
+XX   MMMMMh   ..hhMMMMMMMMMMhh.                .hhMMMMMMMMMMhh..   hMMMMM   XX
+XX   ---MMM .hMMMMdd:::dMMMMMMMhh..        ..hhMMMMMMMd:::ddMMMMh. MMM---   XX
+XX   MMMMMM MMmm''      'mmMMMMMMMMyy.  .yyMMMMMMMMmm'      ''mmMM MMMMMM   XX
+XX   ---mMM ''             'mmMMMMMMMM  MMMMMMMMmm'             '' MMm---   XX
+XX   yyyym'    .              'mMMMMm'  'mMMMMm'              .    'myyyy   XX
+XX   mm''    .y'     ..yyyyy..  ''''      ''''  ..yyyyy..     'y.    ''mm   XX
+XX           MN    .sMMMMMMMMMss.   .    .   .ssMMMMMMMMMs.    NM           XX
+XX           N`    MMMMMMMMMMMMMN   M    M   NMMMMMMMMMMMMM    `N           XX
+XX            +  .sMNNNNNMMMMMN+   `N    N`   +NMMMMMNNNNNMs.  +            XX
+XX              o+++     ++++Mo    M      M    oM++++     +++o              XX
+XX                                oo      oo                                XX
+XX           oM                 oo          oo                 Mo           XX
+XX         oMMo                M              M                oMMo         XX
+XX       +MMMM                 s              s                 MMMM+       XX
+XX      +MMMMM+            +++NNNN+        +NNNN+++            +MMMMM+      XX
+XX     +MMMMMMM+       ++NNMMMMMMMMN+    +NMMMMMMMMNN++       +MMMMMMM+     XX
+XX     MMMMMMMMMNN+++NNMMMMMMMMMMMMMMNNNNMMMMMMMMMMMMMMNN+++NNMMMMMMMMM     XX
+XX     yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy     XX
+XX   m  yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy  m   XX
+XX   MMm yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy mMM   XX
+XX   MMMm .yyMMMMMMMMMMMMMMMM     MMMMMMMMMM     MMMMMMMMMMMMMMMMyy. mMMM   XX
+XX   MMMMd   ''''hhhhh       odddo          obbbo        hhhh''''   dMMMM   XX
+XX   MMMMMd             'hMMMMMMMMMMddddddMMMMMMMMMMh'             dMMMMM   XX
+XX   MMMMMMd              'hMMMMMMMMMMMMMMMMMMMMMMh'              dMMMMMM   XX
+XX   MMMMMMM-               ''ddMMMMMMMMMMMMMMdd''               -MMMMMMM   XX
+XX   MMMMMMMM                   '::dddddddd::'                   MMMMMMMM   XX
+XX   MMMMMMMM-                                                  -MMMMMMMM   XX
+XX   MMMMMMMMM                                                  MMMMMMMMM   XX
+XX   MMMMMMMMMy                                                yMMMMMMMMM   XX
+XX   MMMMMMMMMMy.                                            .yMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMy.                                        .yMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMy.                                    .yMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMs.                                .sMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMMMss.           ....           .ssMMMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMMMMMNo         oNNNNo         oNMMMMMMMMMMMMMMMMMMMM   XX
+XX                                                                          XX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    .o88o.                               o8o                .
+    888 `"                               `"'              .o8
+   o888oo   .oooo.o  .ooooo.   .ooooo.  oooo   .ooooo.  .o888oo oooo    ooo
+    888    d88(  "8 d88' `88b d88' `"Y8 `888  d88' `88b   888    `88.  .8'
+    888    `"Y88b.  888   888 888        888  888ooo888   888     `88..8'
+    888    o.  )88b 888   888 888   .o8  888  888    .o   888 .    `888'
+   o888o   8""888P' `Y8bod8P' `Y8bod8P' o888o `Y8bod8P'   "888"      d8'
+                                                                .o...P'
+                                                                `XER0'
+
+
+                                                              http://0w.nz
+                                                              http://xero.nu
+                                                              http://fontvir.us
+">$ cat fsociety00.dat
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XX                                                                          XX
+XX   MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMMMMMMssssssssssssssssssssssssssMMMMMMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMss'''                          '''ssMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMyy''                                    ''yyMMMMMMMMMMMM   XX
+XX   MMMMMMMMyy''                                            ''yyMMMMMMMM   XX
+XX   MMMMMy''                                                    ''yMMMMM   XX
+XX   MMMy'                                                          'yMMM   XX
+XX   Mh'                                                              'hM   XX
+XX   -                                                                  -   XX
+XX                                                                          XX
+XX   ::                                                                ::   XX
+XX   MMhh.        ..hhhhhh..                      ..hhhhhh..        .hhMM   XX
+XX   MMMMMh   ..hhMMMMMMMMMMhh.                .hhMMMMMMMMMMhh..   hMMMMM   XX
+XX   ---MMM .hMMMMdd:::dMMMMMMMhh..        ..hhMMMMMMMd:::ddMMMMh. MMM---   XX
+XX   MMMMMM MMmm''      'mmMMMMMMMMyy.  .yyMMMMMMMMmm'      ''mmMM MMMMMM   XX
+XX   ---mMM ''             'mmMMMMMMMM  MMMMMMMMmm'             '' MMm---   XX
+XX   yyyym'    .              'mMMMMm'  'mMMMMm'              .    'myyyy   XX
+XX   mm''    .y'     ..yyyyy..  ''''      ''''  ..yyyyy..     'y.    ''mm   XX
+XX           MN    .sMMMMMMMMMss.   .    .   .ssMMMMMMMMMs.    NM           XX
+XX           N`    MMMMMMMMMMMMMN   M    M   NMMMMMMMMMMMMM    `N           XX
+XX            +  .sMNNNNNMMMMMN+   `N    N`   +NMMMMMNNNNNMs.  +            XX
+XX              o+++     ++++Mo    M      M    oM++++     +++o              XX
+XX                                oo      oo                                XX
+XX           oM                 oo          oo                 Mo           XX
+XX         oMMo                M              M                oMMo         XX
+XX       +MMMM                 s              s                 MMMM+       XX
+XX      +MMMMM+            +++NNNN+        +NNNN+++            +MMMMM+      XX
+XX     +MMMMMMM+       ++NNMMMMMMMMN+    +NMMMMMMMMNN++       +MMMMMMM+     XX
+XX     MMMMMMMMMNN+++NNMMMMMMMMMMMMMMNNNNMMMMMMMMMMMMMMNN+++NNMMMMMMMMM     XX
+XX     yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy     XX
+XX   m  yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy  m   XX
+XX   MMm yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMy mMM   XX
+XX   MMMm .yyMMMMMMMMMMMMMMMM     MMMMMMMMMM     MMMMMMMMMMMMMMMMyy. mMMM   XX
+XX   MMMMd   ''''hhhhh       odddo          obbbo        hhhh''''   dMMMM   XX
+XX   MMMMMd             'hMMMMMMMMMMddddddMMMMMMMMMMh'             dMMMMM   XX
+XX   MMMMMMd              'hMMMMMMMMMMMMMMMMMMMMMMh'              dMMMMMM   XX
+XX   MMMMMMM-               ''ddMMMMMMMMMMMMMMdd''               -MMMMMMM   XX
+XX   MMMMMMMM                   '::dddddddd::'                   MMMMMMMM   XX
+XX   MMMMMMMM-                                                  -MMMMMMMM   XX
+XX   MMMMMMMMM                                                  MMMMMMMMM   XX
+XX   MMMMMMMMMy                                                yMMMMMMMMM   XX
+XX   MMMMMMMMMMy.                                            .yMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMy.                                        .yMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMy.                                    .yMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMs.                                .sMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMMMss.           ....           .ssMMMMMMMMMMMMMMMMMM   XX
+XX   MMMMMMMMMMMMMMMMMMMMNo         oNNNNo         oNMMMMMMMMMMMMMMMMMMMM   XX
+XX                                                                          XX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    .o88o.                               o8o                .
+    888 `"                               `"'              .o8
+   o888oo   .oooo.o  .ooooo.   .ooooo.  oooo   .ooooo.  .o888oo oooo    ooo
+    888    d88(  "8 d88' `88b d88' `"Y8 `888  d88' `88b   888    `88.  .8'
+    888    `"Y88b.  888   888 888        888  888ooo888   888     `88..8'
+    888    o.  )88b 888   888 888   .o8  888  888    .o   888 .    `888'
+   o888o   8""888P' `Y8bod8P' `Y8bod8P' o888o `Y8bod8P'   "888"      d8'
+                                                                .o...P'
+                                                                `XER0'
+
+
+                                                              http://0w.nz
+                                                              http://xero.nu
+                                                              http://fontvir.us
+</pre>
+  </div>
+<script>
+(function() {
+  const c = document.getElementById('rain');
+  const ctx = c.getContext('2d');
+  let w, h, cols, y;
+  const chars = 'アイウエオカキクケコ0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&*';
+  const glyphs = chars.split('');
+  function resize() {
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+    cols = Math.floor(w / 18);
+    y = Array(cols).fill(0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  function draw() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#5AA9E6';
+    ctx.font = '16px monospace';
+    for (let i = 0; i < y.length; i++) {
+      const text = glyphs[Math.floor(Math.random() * glyphs.length)];
+      const x = i * 18;
+      ctx.fillText(text, x, y[i] * 18);
+      if (y[i] * 18 > h && Math.random() > 0.975) y[i] = 0;
+      y[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

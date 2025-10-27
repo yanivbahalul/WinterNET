@@ -1,0 +1,51 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = HelloWorldWeb
+build_property.RootNamespace = HelloWorldWeb
+build_property.ProjectDir = /Users/yaniv/Desktop/WinterNET/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/yaniv/Desktop/WinterNET
+build_property._RazorSourceGeneratorDebug = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/ Logout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvIExvZ291dC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Admin.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Cheater.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2hlYXRlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/FlagCheater.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRmxhZ0NoZWF0ZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Leaderboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTGVhZGVyYm9hcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTG9naW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Stats.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU3RhdHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 

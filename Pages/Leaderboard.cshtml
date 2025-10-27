@@ -1,0 +1,47 @@
+@page
+@model HelloWorldWeb.Pages.LeaderboardModel
+@{
+    ViewData["Title"] = "טבלת מובילים";
+}
+
+<link rel="stylesheet" href="/css/site.css" />
+
+<!-- רקע -->
+<img src="/assets/background.gif" alt="רקע" class="background-gif" />
+<iframe src="/logo/fsociety_matrix_blue.html" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; border: none; pointer-events: none; opacity: 0.5;"></iframe>
+
+<!-- לוגו -->
+<div class="logo-header">
+    <div style="color: #DF2D2F; font-family: monospace; font-size: 3vh; text-shadow: 0 0 8px rgba(223,45,47,0.7), 0 0 2px rgba(223,45,47,1);">
+        WINTERNET QUIZ
+    </div>
+</div>
+
+<!-- כפתור חזרה לחידון – שמאל למעלה -->
+<a href="/Index" class="next-question-btn" style="position: fixed; top: 20px; left: 20px; text-decoration: none;">⬅ חזרה לחידון</a>
+
+<!-- טבלת מובילים -->
+<div class="quiz-container" style="text-align:center;">
+    <h2 style="margin-bottom: 30px;">🏆 טבלת המובילים</h2>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; color: white;">
+        <thead>
+            <tr style="background-color: #333;">
+                <th style="padding: 12px;">#</th>
+                <th style="padding: 12px;">שם משתמש</th>
+                <th style="padding: 12px;">תשובות נכונות</th>
+            </tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.SortedUsers.Count; i++)
+        {
+            var user = Model.SortedUsers[i];
+            <tr style="background-color:@(i % 2 == 0 ? "#222" : "#111");">
+                <td style="padding: 10px;">@(@i + 1)</td>
+                <td style="padding: 10px;">@user.Username</td>
+                <td style="padding: 10px;">@user.CorrectAnswers</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

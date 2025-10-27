@@ -1,0 +1,51 @@
+@page
+@model HelloWorldWeb.Pages.LoginModel
+@{
+    ViewData["Title"] = "התחברות / הרשמה";
+}
+
+<link rel="stylesheet" href="/css/site.css" />
+
+<!-- רקע -->
+<img src="/assets/background.gif" alt="רקע" class="background-gif" />
+<iframe src="/logo/fsociety_matrix_blue.html" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; border: none; pointer-events: none; opacity: 0.5;"></iframe>
+
+<!-- לוגו למעלה -->
+<div class="logo-header">
+    <div style="color: #DF2D2F; font-family: monospace; font-size: 3vh; text-shadow: 0 0 8px rgba(223,45,47,0.7), 0 0 2px rgba(223,45,47,1);">
+        WINTERNET QUIZ
+    </div>
+</div>
+
+<!-- טופס התחברות -->
+<div class="login-container" style="max-width: 400px; margin: 0 auto; padding: 40px 30px; background-color: rgba(0, 0, 0, 0.5); border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.4); margin-top: 150px; text-align: center;">
+
+    <h2 style="color: #DF2D2F; margin-bottom: 25px; font-family: 'MR ROBOT', monospace; font-size: 42px; text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 0 10px rgba(223,45,47,0.8), 0 0 20px rgba(223,45,47,0.6), 0 0 30px rgba(223,45,47,0.4);">שלום, חבר</h2>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <p class="error-message" style="color: @(Model.ErrorMessage.Contains("נחסם") ? "#ff0000" : "#ff4c4c"); margin-bottom: 20px;">
+            @Model.ErrorMessage
+        </p>
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div style="text-align: right;">
+            <label for="username" style="color: #DF2D2F;">שם משתמש:</label>
+            <input type="text" name="Username" id="username" class="input-field"
+                   value="@Model.Username"
+                   style="width: 100%; margin-bottom: 20px;" required />
+
+            <label for="password" style="color: #DF2D2F;">סיסמה:</label>
+            <input type="password" name="Password" id="password" class="input-field"
+                   style="width: 100%; margin-bottom: 25px;" required />
+        </div>
+
+        <div style="display: flex; justify-content: space-between; gap: 10px;">
+            <button type="submit" name="action" value="login" class="main-btn" style="flex: 1;">🚪 התחברות</button>
+            <button type="submit" name="action" value="register" class="secondary-btn" style="flex: 1;">📝 הרשמה</button>
+        </div>
+    </form>
+</div>

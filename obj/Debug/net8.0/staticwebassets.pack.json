@@ -1,0 +1,345 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/assets/background.gif",
+      "PackagePath": "staticwebassets/assets/background.gif"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/css/site.css",
+      "PackagePath": "staticwebassets/css/site.css"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/font/MR ROBOT.ttf",
+      "PackagePath": "staticwebassets/font/MR ROBOT.ttf"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/logo/fsociety_matrix_blue.gif",
+      "PackagePath": "staticwebassets/logo/fsociety_matrix_blue.gif"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/logo/fsociety_matrix_blue.html",
+      "PackagePath": "staticwebassets/logo/fsociety_matrix_blue.html"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-19-57.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-19-57.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-20-02.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-20-02.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-20-06.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-20-06.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-20-09.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-20-09.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-20-13.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-20-13.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-20-24.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-20-24.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-22-44.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-22-44.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-22-50.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-22-50.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-22-54.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-22-54.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-22-57.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-22-57.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-24-37.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-24-37.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-29-51.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-29-51.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-30-05.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-30-05.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-30-08.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-30-08.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-30-12.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-30-12.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-30-17.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-30-17.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-32-30.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-32-30.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-32-36.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-32-36.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-32-40.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-32-40.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-32-43.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-32-43.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-13.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-13.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-21.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-21.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-25.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-25.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-28.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-28.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-32.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-32.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-39.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-39.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-44.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-44.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-49.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-49.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-54.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-54.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-33-57.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-33-57.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-08.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-08.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-18.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-18.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-25.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-25.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-30.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-30.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-35.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-35.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-41.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-41.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-45.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-45.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-52.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-52.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-55.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-55.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-34-59.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-34-59.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-08.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-08.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-13.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-13.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-17.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-17.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-20.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-20.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-24.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-24.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-28.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-28.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-33.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-33.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-37.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-37.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-41.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-41.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-46.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-46.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-35-55.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-35-55.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-04.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-04.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-07.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-07.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-13.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-13.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-17.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-17.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-25.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-25.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-29.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-29.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-36.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-36.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-39.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-39.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-48.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-48.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-54.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-54.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-36-58.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-36-58.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-03.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-03.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-07.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-07.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-10.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-10.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-16.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-16.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-19.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-19.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-23.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-23.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-25.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-25.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-29.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-29.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-32.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-32.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-36.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-36.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-39.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-39.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-42.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-42.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-37-45.png",
+      "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-37-45.png"
+    },
+    {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/sounds/alarm.mp3",
+      "PackagePath": "staticwebassets/sounds/alarm.mp3"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.HelloWorldWeb.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.HelloWorldWeb.props",
+      "PackagePath": "build\\HelloWorldWeb.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.HelloWorldWeb.props",
+      "PackagePath": "buildMultiTargeting\\HelloWorldWeb.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.HelloWorldWeb.props",
+      "PackagePath": "buildTransitive\\HelloWorldWeb.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

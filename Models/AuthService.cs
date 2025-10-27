@@ -158,33 +158,72 @@ namespace HelloWorldWeb.Models
 
         public async Task UpdateUser(User updatedUser)
         {
-            if (_supabase == null) return;
-
+            // Try Supabase first
+            if (_supabase != null)
+            {
+                try
+                {
+                    Console.WriteLine($"[UpdateUser] Updating user via Supabase: {updatedUser.Username}");
+                    updatedUser.LastSeen = DateTime.UtcNow;
+                    
+                    // Update by Username (since it's the primary key)
+                    await _supabase.From<User>()
+                        .Where(x => x.Username == updatedUser.Username)
+                        .Set(x => x.CorrectAnswers, updatedUser.CorrectAnswers)
+                        .Set(x => x.TotalAnswered, updatedUser.TotalAnswered)
+                        .Set(x => x.IsCheater, updatedUser.IsCheater)
+                        .Set(x => x.IsBanned, updatedUser.IsBanned)
+                        .Set(x => x.LastSeen, updatedUser.LastSeen)
+                        .Update();
+                    
+                    Console.WriteLine($"[UpdateUser] Successfully updated user: {updatedUser.Username}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[UpdateUser] Supabase error: {ex.Message}");
+                }
+            }
+            
+            // Fallback to local storage
+            Console.WriteLine($"[UpdateUser] Using local storage fallback for: {updatedUser.Username}");
             try
             {
-                updatedUser.LastSeen = DateTime.UtcNow;
-                await _supabase.From<User>().Update(updatedUser);
+                var users = await GetAllUsersLocal();
+                var index = users.FindIndex(u => u.Username == updatedUser.Username);
+                if (index >= 0)
+                {
+                    users[index] = updatedUser;
+                    await SaveUsersLocal(users);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[UpdateUser] Error: {ex.Message}");
+                Console.WriteLine($"[UpdateUser] Local storage error: {ex.Message}");
             }
         }
 
         public async Task<List<User>> GetAllUsers()
         {
-            if (_supabase == null) return new List<User>();
-
-            try
+            // Try Supabase first
+            if (_supabase != null)
             {
-                var response = await _supabase.From<User>().Get();
-                return response.Models;
+                try
+                {
+                    Console.WriteLine("[GetAllUsers] Fetching users from Supabase");
+                    var response = await _supabase.From<User>().Get();
+                    Console.WriteLine($"[GetAllUsers] Retrieved {response.Models.Count} users from Supabase");
+                    return response.Models;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[GetAllUsers] Supabase error: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[GetAllUsers] Error: {ex.Message}");
-                return new List<User>();
-            }
+            
+            // Fallback to local storage
+            Console.WriteLine("[GetAllUsers] Using local storage fallback");
+            return await GetAllUsersLocal();
         }
 
         public async Task<bool> DeleteUser(string username)

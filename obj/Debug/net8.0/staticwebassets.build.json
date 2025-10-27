@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "iy1oDwW1hIRDdpjnUyGF/zuwhWdJSUwRDg36cidsBg8=",
+  "Hash": "Hy+eAfqA5uLtDMbRF8uVVSp4ihSGAdx3ovj7uXTWnX4=",
   "Source": "HelloWorldWeb",
   "BasePath": "_content/HelloWorldWeb",
   "Mode": "Default",
@@ -110,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/logo/fsociety_matrix_blue.html"
+    },
+    {
+      "Identity": "/Users/yaniv/Desktop/WinterNET/wwwroot/logo/logo.png",
+      "SourceId": "HelloWorldWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/yaniv/Desktop/WinterNET/wwwroot/",
+      "BasePath": "_content/HelloWorldWeb",
+      "RelativePath": "logo/logo.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/logo/logo.png"
     },
     {
       "Identity": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-19-57.png",

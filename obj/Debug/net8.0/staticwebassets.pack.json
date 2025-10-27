@@ -21,6 +21,10 @@
       "PackagePath": "staticwebassets/logo/fsociety_matrix_blue.html"
     },
     {
+      "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/logo/logo.png",
+      "PackagePath": "staticwebassets/logo/logo.png"
+    },
+    {
       "Id": "/Users/yaniv/Desktop/WinterNET/wwwroot/quiz_images/Screenshot at Oct 27 16-19-57.png",
       "PackagePath": "staticwebassets/quiz_images/Screenshot at Oct 27 16-19-57.png"
     },

@@ -486,29 +486,4 @@ button.answer-btn:hover img {
     text-shadow: 0 0 10px var(--rojo);
 }
 
-/* Matrix Scan Line Effect */
-@keyframes scanLine {
-    0% {
-        transform: translateY(-100%);
-    }
-    100% {
-        transform: translateY(100vh);
-    }
-}
 
-body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(to bottom, 
-        transparent, 
-        rgba(90, 169, 230, 0.3), 
-        transparent
-    );
-    animation: scanLine 3s linear infinite;
-    pointer-events: none;
-    z-index: 9999;
-}

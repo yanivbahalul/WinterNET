@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Supabase;
 using Supabase.Postgrest.Models;
+using Supabase.Postgrest.Attributes;
 using Microsoft.Extensions.Configuration;
+
 
 #nullable enable
 
 namespace HelloWorldWeb.Models
 {
+    [Table("WinterUsers")]
     public class User : BaseModel
     {
         public User() : base() { }
@@ -28,45 +33,68 @@ namespace HelloWorldWeb.Models
     {
         private readonly Client? _supabase;
         private readonly IConfiguration _configuration;
+        private readonly string _usersFilePath;
         private const string TABLE_NAME = "WinterUsers";
 
         public AuthService(IConfiguration configuration)
         {
             _configuration = configuration;
+            
+            // Setup local storage fallback
+            var dataDir = Path.Combine(Directory.GetCurrentDirectory(), "data");
+            if (!Directory.Exists(dataDir))
+                Directory.CreateDirectory(dataDir);
+            _usersFilePath = Path.Combine(dataDir, "users.json");
+            
             var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? configuration["Supabase:Url"];
             var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY") ?? configuration["Supabase:Key"];
 
-            if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+            Console.WriteLine($"[AuthService] Supabase URL: {(string.IsNullOrEmpty(supabaseUrl) ? "MISSING" : "OK")}");
+            Console.WriteLine($"[AuthService] Supabase Key: {(string.IsNullOrEmpty(supabaseKey) ? "MISSING" : "OK")}");
+
+            if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
             {
-                throw new Exception("Missing Supabase ENV vars.");
+                var options = new SupabaseOptions
+                {
+                    AutoConnectRealtime = true
+                };
+
+                _supabase = new Client(supabaseUrl, supabaseKey, options);
+                Console.WriteLine("[AuthService] Supabase client initialized successfully");
             }
-
-            var options = new SupabaseOptions
+            else
             {
-                AutoConnectRealtime = true
-            };
-
-            _supabase = new Client(supabaseUrl, supabaseKey, options);
+                Console.WriteLine("[AuthService] WARNING: No Supabase credentials found. Using fallback to local storage.");
+            }
         }
 
         public async Task<User?> Authenticate(string username, string password)
         {
-            if (_supabase == null) return null;
-
-            try
+            // Try Supabase first
+            if (_supabase != null)
             {
-                var response = await _supabase
-                    .From<User>()
-                    .Where(x => x.Username == username)
-                    .Where(x => x.Password == password)
-                    .Single();
+                try
+                {
+                    Console.WriteLine($"[Authenticate] Attempting Supabase authentication: {username}");
+                    var response = await _supabase
+                        .From<User>()
+                        .Where(x => x.Username == username)
+                        .Where(x => x.Password == password)
+                        .Single();
 
-                return response;
+                    Console.WriteLine($"[Authenticate] Successfully authenticated via Supabase: {username}");
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Authenticate] Supabase error: {ex.Message}");
+                }
             }
-            catch
-            {
-                return null;
-            }
+            
+            // Fallback to local storage
+            Console.WriteLine($"[Authenticate] Using local storage fallback: {username}");
+            var users = await GetAllUsersLocal();
+            return users.FirstOrDefault(u => u.Username == username && u.Password == password);
         }
 
         public async Task<bool> Register(string username, string password)
@@ -179,17 +207,51 @@ namespace HelloWorldWeb.Models
 
         public async Task<bool> CheckConnection()
         {
-            if (_supabase == null) return false;
+            if (_supabase != null)
+            {
+                try
+                {
+                    await _supabase.From<User>().Get();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            return true; // Local storage always works
+        }
 
+        // Local storage fallback methods
+        private async Task<List<User>> GetAllUsersLocal()
+        {
             try
             {
-                // נסיון לקרוא מהטבלה כדי לבדוק חיבור
-                await _supabase.From<User>().Get();
-                return true;
+                if (File.Exists(_usersFilePath))
+                {
+                    var json = await File.ReadAllTextAsync(_usersFilePath);
+                    var users = JsonSerializer.Deserialize<List<User>>(json);
+                    return users ?? new List<User>();
+                }
+                return new List<User>();
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                Console.WriteLine($"[GetAllUsersLocal] Error: {ex.Message}");
+                return new List<User>();
+            }
+        }
+
+        private async Task SaveUsersLocal(List<User> users)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_usersFilePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SaveUsersLocal] Error: {ex.Message}");
             }
         }
     }

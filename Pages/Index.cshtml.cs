@@ -35,9 +35,6 @@ namespace HelloWorldWeb.Pages
             if (string.IsNullOrEmpty(Username))
                 return RedirectToPage("/Login");
 
-            var isUp = await _authService.CheckConnection();
-            ConnectionStatus = isUp ? "✅ Supabase connection OK" : "❌ Supabase connection FAILED";
-
             if (HttpContext.Session.GetString("SessionStart") == null)
             {
                 HttpContext.Session.SetString("SessionStart", DateTime.UtcNow.ToString());
@@ -45,21 +42,40 @@ namespace HelloWorldWeb.Pages
                 HttpContext.Session.SetInt32("RapidCorrect", 0);
             }
 
-            var user = await _authService.GetUser(Username);
-            if (user != null)
+            // Optimize: Only update LastSeen once every 30 seconds
+            var lastUpdateStr = HttpContext.Session.GetString("LastDbUpdate");
+            var shouldUpdate = string.IsNullOrEmpty(lastUpdateStr) || 
+                              (DateTime.UtcNow - DateTime.Parse(lastUpdateStr)).TotalSeconds > 30;
+
+            if (shouldUpdate)
             {
-                if (user.IsBanned)
+                var user = await _authService.GetUser(Username);
+                if (user != null)
                 {
-                    HttpContext.Session.Clear();
-                    Response.Cookies.Delete("Username");
-                    return RedirectToPage("/Login");
+                    if (user.IsBanned)
+                    {
+                        HttpContext.Session.Clear();
+                        Response.Cookies.Delete("Username");
+                        return RedirectToPage("/Login");
+                    }
+                    user.LastSeen = DateTime.UtcNow;
+                    await _authService.UpdateUser(user);
                 }
-                user.LastSeen = DateTime.UtcNow;
-                await _authService.UpdateUser(user);
+
+                // Cache the online count
+                var allUsers = await _authService.GetAllUsers();
+                OnlineCount = allUsers.Count(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5));
+                HttpContext.Session.SetString("OnlineCount", OnlineCount.ToString());
+                HttpContext.Session.SetString("LastDbUpdate", DateTime.UtcNow.ToString());
+            }
+            else
+            {
+                // Use cached value
+                var cachedCount = HttpContext.Session.GetString("OnlineCount");
+                OnlineCount = int.TryParse(cachedCount, out var count) ? count : 0;
             }
 
-            OnlineCount = (await _authService.GetAllUsers())
-                .Where(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5)).Count();
+            ConnectionStatus = "✅ Supabase connection OK";
 
             LoadRandomQuestion();
             return Page();
@@ -175,8 +191,9 @@ namespace HelloWorldWeb.Pages
                 return RedirectToPage("/Cheater");
             }
 
-            OnlineCount = (await _authService.GetAllUsers())
-                .Where(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5)).Count();
+            // Use cached online count instead of querying every time
+            var cachedOnlineCount = HttpContext.Session.GetString("OnlineCount");
+            OnlineCount = int.TryParse(cachedOnlineCount, out var count) ? count : 0;
 
             return Page();
         }

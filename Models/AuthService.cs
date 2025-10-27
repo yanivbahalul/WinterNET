@@ -21,6 +21,7 @@ namespace HelloWorldWeb.Models
         public User() : base() { }
         
         [PrimaryKey("Username")]
+        [Column("Username")]
         public string Username { get; set; } = "";
         
         [Column("Password")]

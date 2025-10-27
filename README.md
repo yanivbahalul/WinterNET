@@ -51,7 +51,7 @@ Pull requests, feedback, and stars ⭐ are always welcome!
 
 ## 📬 Contact
 
-Created by **[Yaniv Bahalul](https://github.com/yanivbahalul)**  
+Created by **[Yaniv Bahalul](https://github.com/yanivbahalul)** and **[Shai Cohen](https://github.com/shaico111)**  
 For issues or ideas – open a discussion on GitHub.
 
 ---

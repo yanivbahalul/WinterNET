@@ -1,32 +1,72 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Supabase;
+using Supabase.Postgrest.Models;
+using Microsoft.Extensions.Configuration;
 
 #nullable enable
 
 namespace HelloWorldWeb.Models
 {
+    public class User : BaseModel
+    {
+        public User() : base() { }
+        
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public int CorrectAnswers { get; set; }
+        public int TotalAnswered { get; set; }
+        public bool IsCheater { get; set; }
+        public bool IsBanned { get; set; }
+        public DateTime? LastSeen { get; set; }
+    }
+
     public class AuthService
     {
-        private readonly string _usersFilePath;
+        private readonly Client? _supabase;
+        private readonly IConfiguration _configuration;
+        private const string TABLE_NAME = "WinterUsers";
 
-        public AuthService()
+        public AuthService(IConfiguration configuration)
         {
-            var dataDir = Path.Combine(Directory.GetCurrentDirectory(), "data");
-            if (!Directory.Exists(dataDir))
-                Directory.CreateDirectory(dataDir);
-            
-            _usersFilePath = Path.Combine(dataDir, "users.json");
+            _configuration = configuration;
+            var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? configuration["Supabase:Url"];
+            var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY") ?? configuration["Supabase:Key"];
+
+            if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
+            {
+                throw new Exception("Missing Supabase ENV vars.");
+            }
+
+            var options = new SupabaseOptions
+            {
+                AutoConnectRealtime = true
+            };
+
+            _supabase = new Client(supabaseUrl, supabaseKey, options);
         }
 
         public async Task<User?> Authenticate(string username, string password)
         {
-            var users = await GetAllUsers();
-            return users.FirstOrDefault(u => u.Username == username && u.Password == password);
+            if (_supabase == null) return null;
+
+            try
+            {
+                var response = await _supabase
+                    .From<User>()
+                    .Where(x => x.Username == username)
+                    .Where(x => x.Password == password)
+                    .Single();
+
+                return response;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task<bool> Register(string username, string password)
@@ -44,8 +84,7 @@ namespace HelloWorldWeb.Models
             if (existingUser != null)
                 return false;
 
-            var users = await GetAllUsers();
-            users.Add(new User
+            var newUser = new User
             {
                 Username = username,
                 Password = password,
@@ -54,40 +93,64 @@ namespace HelloWorldWeb.Models
                 IsCheater = false,
                 IsBanned = false,
                 LastSeen = DateTime.UtcNow
-            });
+            };
 
-            await SaveUsers(users);
-            return true;
+            if (_supabase == null) return false;
+
+            try
+            {
+                await _supabase.From<User>().Insert(newUser);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Register] Error: {ex.Message}");
+                return false;
+            }
         }
 
         public async Task<User?> GetUser(string username)
         {
-            var users = await GetAllUsers();
-            return users.FirstOrDefault(u => u.Username == username);
+            if (_supabase == null) return null;
+
+            try
+            {
+                var response = await _supabase
+                    .From<User>()
+                    .Where(x => x.Username == username)
+                    .Single();
+
+                return response;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task UpdateUser(User updatedUser)
         {
-            var users = await GetAllUsers();
-            var index = users.FindIndex(u => u.Username == updatedUser.Username);
-            
-            if (index >= 0)
+            if (_supabase == null) return;
+
+            try
             {
-                users[index] = updatedUser;
-                await SaveUsers(users);
+                updatedUser.LastSeen = DateTime.UtcNow;
+                await _supabase.From<User>().Update(updatedUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UpdateUser] Error: {ex.Message}");
             }
         }
 
         public async Task<List<User>> GetAllUsers()
         {
+            if (_supabase == null) return new List<User>();
+
             try
             {
-                if (File.Exists(_usersFilePath))
-                {
-                    var json = await File.ReadAllTextAsync(_usersFilePath);
-                    return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-                }
-                return new List<User>();
+                var response = await _supabase.From<User>().Get();
+                return response.Models;
             }
             catch (Exception ex)
             {
@@ -96,19 +159,15 @@ namespace HelloWorldWeb.Models
             }
         }
 
-        private async Task SaveUsers(List<User> users)
-        {
-            var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_usersFilePath, json);
-        }
-
         public async Task<bool> DeleteUser(string username)
         {
+            if (_supabase == null) return false;
+
             try
             {
-                var users = await GetAllUsers();
-                users.RemoveAll(u => u.Username == username);
-                await SaveUsers(users);
+                await _supabase.From<User>()
+                    .Where(x => x.Username == username)
+                    .Delete();
                 return true;
             }
             catch (Exception ex)
@@ -120,7 +179,18 @@ namespace HelloWorldWeb.Models
 
         public async Task<bool> CheckConnection()
         {
-            return true; // תמיד עובד עם סטורג׳ מקומי
+            if (_supabase == null) return false;
+
+            try
+            {
+                // נסיון לקרוא מהטבלה כדי לבדוק חיבור
+                await _supabase.From<User>().Get();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

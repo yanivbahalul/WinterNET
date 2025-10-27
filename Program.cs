@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using HelloWorldWeb.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Razor Pages + Session
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor(); 
-builder.Services.AddSingleton<AuthService>(sp => new AuthService());
+builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = ".WinterNET.Session";
@@ -87,7 +88,7 @@ if (Directory.Exists(progressDir))
 }
 
 // ✅ Render: הגדרת פורט מהסביבה
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5001";
-app.Urls.Add($"http://localhost:{port}");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://*:{port}");
 
 app.Run();

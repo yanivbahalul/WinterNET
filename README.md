@@ -1,10 +1,8 @@
 <!-- README.md -->
 
 <p align="center">
-  <h1>❄️ WinterNET Quiz</h1>
+  <img src="wwwroot/logo/logo.png" alt="WinterNET Quiz Logo" width="400">
 </p>
-
-<h1 align="center">❄️ WinterNET Quiz</h1>
 
 <p align="center">
   Interactive quiz simulator for technical questions – now live and always up to date!

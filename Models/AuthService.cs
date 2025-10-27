@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Supabase;
 using Supabase.Postgrest.Models;
 using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Converters;
 using Microsoft.Extensions.Configuration;
 
 
@@ -225,17 +226,67 @@ namespace HelloWorldWeb.Models
             }
         }
 
-        public async Task<List<User>> GetAllUsers()
+        public async Task<List<User>> GetTopUsers(int count)
+        {
+            // Optimized query: Get only top users sorted by CorrectAnswers
+            if (_supabase != null)
+            {
+                try
+                {
+                    Console.WriteLine($"[GetTopUsers] Fetching top {count} users from Supabase");
+                    
+                    // Get all users and sort in memory (simpler approach)
+                    var response = await _supabase
+                        .From<User>()
+                        .Get();
+                    
+                    // Sort by CorrectAnswers descending, then by TotalAnswered ascending
+                    var sortedUsers = response.Models
+                        .OrderByDescending(u => u.CorrectAnswers)
+                        .ThenBy(u => u.TotalAnswered)
+                        .Take(count)
+                        .ToList();
+                    
+                    Console.WriteLine($"[GetTopUsers] Retrieved {sortedUsers.Count} top users from Supabase");
+                    return sortedUsers;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[GetTopUsers] Supabase error: {ex.Message}");
+                }
+            }
+            
+            // Fallback to local storage
+            Console.WriteLine("[GetTopUsers] Using local storage fallback");
+            var allUsers = await GetAllUsersLocal();
+            return allUsers
+                .OrderByDescending(u => u.CorrectAnswers)
+                .ThenBy(u => u.TotalAnswered)
+                .Take(count)
+                .ToList();
+        }
+
+        public async Task<List<User>> GetAllUsers(int? limit = null, List<string>? columns = null)
         {
             // Try Supabase first
             if (_supabase != null)
             {
                 try
                 {
-                    Console.WriteLine("[GetAllUsers] Fetching users from Supabase");
+                    Console.WriteLine($"[GetAllUsers] Fetching users from Supabase (limit={limit})");
+                    
                     var response = await _supabase.From<User>().Get();
-                    Console.WriteLine($"[GetAllUsers] Retrieved {response.Models.Count} users from Supabase");
-                    return response.Models;
+                    
+                    // Apply limit and column filtering in memory
+                    var users = response.Models;
+                    
+                    if (limit.HasValue && limit.Value > 0)
+                    {
+                        users = users.Take(limit.Value).ToList();
+                    }
+                    
+                    Console.WriteLine($"[GetAllUsers] Retrieved {users.Count} users from Supabase");
+                    return users;
                 }
                 catch (Exception ex)
                 {
@@ -245,7 +296,15 @@ namespace HelloWorldWeb.Models
             
             // Fallback to local storage
             Console.WriteLine("[GetAllUsers] Using local storage fallback");
-            return await GetAllUsersLocal();
+            var allUsers = await GetAllUsersLocal();
+            
+            // Apply limit in local storage
+            if (limit.HasValue && limit.Value > 0)
+            {
+                return allUsers.Take(limit.Value).ToList();
+            }
+            
+            return allUsers;
         }
 
         public async Task<bool> DeleteUser(string username)

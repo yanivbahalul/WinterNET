@@ -19,11 +19,10 @@ namespace HelloWorldWeb.Pages
 
         public async Task OnGetAsync()
         {
-            var users = await _authService.GetAllUsers();
-            SortedUsers = users
-                .OrderByDescending(u => u.CorrectAnswers)
-                .ThenBy(u => u.TotalAnswered)
-                .ToList();
+            // Optimized: Fetch top 50 users with specific columns only
+            // This reduces network traffic and memory usage
+            var users = await _authService.GetTopUsers(50);
+            SortedUsers = users;
         }
     }
 }

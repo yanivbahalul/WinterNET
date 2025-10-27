@@ -18,20 +18,15 @@ EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
 -- Create policy to allow all operations (for public use)
-DO $$ 
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies 
-    WHERE tablename = 'WinterUsers' AND policyname = 'Allow all operations on WinterUsers'
-  ) THEN
-    CREATE POLICY "Allow all operations on WinterUsers" 
-    ON public."WinterUsers" 
-    FOR ALL 
-    USING (true) 
-    WITH CHECK (true);
-  END IF;
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
+-- First drop existing policy if exists
+DROP POLICY IF EXISTS "Allow all operations on WinterUsers" ON public."WinterUsers";
+
+-- Create policy that allows all operations including DELETE
+CREATE POLICY "Allow all operations on WinterUsers" 
+ON public."WinterUsers" 
+FOR ALL 
+USING (true) 
+WITH CHECK (true);
 
 -- Insert a test user for testing (only if doesn't exist)
 INSERT INTO public."WinterUsers" ("Username", "Password", "CorrectAnswers", "TotalAnswered", "IsCheater", "IsBanned") 

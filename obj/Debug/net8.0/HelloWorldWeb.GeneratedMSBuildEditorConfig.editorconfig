@@ -18,10 +18,6 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = /Users/yaniv/Desktop/WinterNET
 build_property._RazorSourceGeneratorDebug = 
 
-[/Users/yaniv/Desktop/WinterNET/Pages/ Logout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXMvIExvZ291dC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [/Users/yaniv/Desktop/WinterNET/Pages/Admin.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQWRtaW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -44,6 +40,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/yaniv/Desktop/WinterNET/Pages/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTG9naW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/yaniv/Desktop/WinterNET/Pages/Logout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTG9nb3V0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/yaniv/Desktop/WinterNET/Pages/Stats.cshtml]

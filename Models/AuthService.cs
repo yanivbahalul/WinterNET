@@ -179,24 +179,23 @@ namespace HelloWorldWeb.Models
                     Console.WriteLine($"[UpdateUser] Updating user via Supabase: {updatedUser.Username}");
                     updatedUser.LastSeen = DateTime.UtcNow;
                     
-                    // Update using Supabase Update method
-                    // First get the existing user to preserve the Id
-                    var existingUser = await _supabase.From<User>()
-                        .Where(x => x.Username == updatedUser.Username)
-                        .Single();
+                    // Update using direct property updates
+                    // Supabase Postgrest .Update() requires an object with PrimaryKey set
+                    // Since Username is our PrimaryKey, we need to set it explicitly
                     
-                    if (existingUser != null)
+                    var userToUpdate = new User
                     {
-                        // Update the properties
-                        existingUser.CorrectAnswers = updatedUser.CorrectAnswers;
-                        existingUser.TotalAnswered = updatedUser.TotalAnswered;
-                        existingUser.IsCheater = updatedUser.IsCheater;
-                        existingUser.IsBanned = updatedUser.IsBanned;
-                        existingUser.LastSeen = updatedUser.LastSeen;
-                        
-                        // Save back to Supabase
-                        await _supabase.From<User>().Update(existingUser);
-                    }
+                        Username = updatedUser.Username,  // Primary Key must be set
+                        Password = updatedUser.Password,
+                        CorrectAnswers = updatedUser.CorrectAnswers,
+                        TotalAnswered = updatedUser.TotalAnswered,
+                        IsCheater = updatedUser.IsCheater,
+                        IsBanned = updatedUser.IsBanned,
+                        LastSeen = updatedUser.LastSeen
+                    };
+                    
+                    // Update in Supabase
+                    await _supabase.From<User>().Update(userToUpdate);
                     
                     Console.WriteLine($"[UpdateUser] Successfully updated user: {updatedUser.Username}");
                     return;

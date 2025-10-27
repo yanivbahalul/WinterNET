@@ -20,12 +20,25 @@ namespace HelloWorldWeb.Models
     {
         public User() : base() { }
         
+        [Column("Username")]
         public string Username { get; set; } = "";
+        
+        [Column("Password")]
         public string Password { get; set; } = "";
+        
+        [Column("CorrectAnswers")]
         public int CorrectAnswers { get; set; }
+        
+        [Column("TotalAnswered")]
         public int TotalAnswered { get; set; }
+        
+        [Column("IsCheater")]
         public bool IsCheater { get; set; }
+        
+        [Column("IsBanned")]
         public bool IsBanned { get; set; }
+        
+        [Column("LastSeen")]
         public DateTime? LastSeen { get; set; }
     }
 
@@ -166,15 +179,24 @@ namespace HelloWorldWeb.Models
                     Console.WriteLine($"[UpdateUser] Updating user via Supabase: {updatedUser.Username}");
                     updatedUser.LastSeen = DateTime.UtcNow;
                     
-                    // Update by Username (since it's the primary key)
-                    await _supabase.From<User>()
+                    // Update using Supabase Update method
+                    // First get the existing user to preserve the Id
+                    var existingUser = await _supabase.From<User>()
                         .Where(x => x.Username == updatedUser.Username)
-                        .Set(x => x.CorrectAnswers, updatedUser.CorrectAnswers)
-                        .Set(x => x.TotalAnswered, updatedUser.TotalAnswered)
-                        .Set(x => x.IsCheater, updatedUser.IsCheater)
-                        .Set(x => x.IsBanned, updatedUser.IsBanned)
-                        .Set(x => x.LastSeen, updatedUser.LastSeen)
-                        .Update();
+                        .Single();
+                    
+                    if (existingUser != null)
+                    {
+                        // Update the properties
+                        existingUser.CorrectAnswers = updatedUser.CorrectAnswers;
+                        existingUser.TotalAnswered = updatedUser.TotalAnswered;
+                        existingUser.IsCheater = updatedUser.IsCheater;
+                        existingUser.IsBanned = updatedUser.IsBanned;
+                        existingUser.LastSeen = updatedUser.LastSeen;
+                        
+                        // Save back to Supabase
+                        await _supabase.From<User>().Update(existingUser);
+                    }
                     
                     Console.WriteLine($"[UpdateUser] Successfully updated user: {updatedUser.Username}");
                     return;

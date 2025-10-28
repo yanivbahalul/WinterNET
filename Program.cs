@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using HelloWorldWeb.Models;
+using HelloWorldWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor(); 
 builder.Services.AddSingleton<AuthService>();
+builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = ".WinterNET.Session";

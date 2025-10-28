@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Http;
 using HelloWorldWeb.Models;
+using HelloWorldWeb.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,13 +13,16 @@ using Newtonsoft.Json;
 
 namespace HelloWorldWeb.Pages
 {
+    [IgnoreAntiforgeryToken]
     public class IndexModel : PageModel
     {
         private readonly AuthService _authService;
+        private readonly EmailService _emailService;
 
-        public IndexModel(AuthService authService)
+        public IndexModel(AuthService authService, EmailService emailService)
         {
             _authService = authService;
+            _emailService = emailService;
         }
 
         public bool AnswerChecked { get; set; }
@@ -285,6 +289,7 @@ namespace HelloWorldWeb.Pages
             QuestionImage = $"{imageBasePath}/{QuestionImage}";
         }
 
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostReportErrorAsync()
         {
             try
@@ -304,13 +309,19 @@ namespace HelloWorldWeb.Pages
                 var username = HttpContext.Session.GetString("Username") ?? "Unknown";
                 var timestamp = DateTime.UtcNow;
 
-                // Log the report to console for now (in production, you'd send this to a database or email)
-                Console.WriteLine($"[REPORT RECEIVED] User: {username}");
-                Console.WriteLine($"[REPORT RECEIVED] Question: {questionImage}");
-                Console.WriteLine($"[REPORT RECEIVED] Correct Answer: {correctAnswer}");
-                Console.WriteLine($"[REPORT RECEIVED] Selected Answer: {selectedAnswer}");
-                Console.WriteLine($"[REPORT RECEIVED] Explanation: {explanation}");
-                Console.WriteLine($"[REPORT RECEIVED] Timestamp: {timestamp}");
+                // Build HTML mail body
+                var htmlBody = $@"<div dir='rtl' style='text-align:right; font-family:Arial,sans-serif;'>
+                    <b>דיווח חדש התקבל</b><br/><br/>
+                    משתמש: {username}<br/>
+                    תאריך: {timestamp:yyyy-MM-dd HH:mm:ss}<br/><br/>
+                    שאלה: {System.Net.WebUtility.HtmlEncode(questionImage)}<br/>
+                    תשובה נכונה: {System.Net.WebUtility.HtmlEncode(correctAnswer)}<br/>
+                    תשובה שסומנה: {System.Net.WebUtility.HtmlEncode(selectedAnswer)}<br/><br/>
+                    פירוט: {System.Net.WebUtility.HtmlEncode(explanation)}
+                </div>";
+
+                var sent = _emailService?.Send($"[WinterNET] דיווח טעות — {username}", htmlBody) ?? false;
+                Console.WriteLine($"[REPORT RECEIVED] Mail sent: {sent}");
 
                 return new JsonResult(new { success = true });
             }

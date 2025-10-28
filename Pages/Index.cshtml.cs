@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace HelloWorldWeb.Pages
@@ -282,6 +283,42 @@ namespace HelloWorldWeb.Pages
             
             // עדכון QuestionImage עם הנתיב הנכון
             QuestionImage = $"{imageBasePath}/{QuestionImage}";
+        }
+
+        public async Task<IActionResult> OnPostReportErrorAsync()
+        {
+            try
+            {
+                string body;
+                using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+                    body = await reader.ReadToEndAsync();
+                if (string.IsNullOrWhiteSpace(body))
+                    return new JsonResult(new { error = "Empty body" }) { StatusCode = 400 };
+
+                var data = Newtonsoft.Json.Linq.JObject.Parse(body);
+                var questionImage = data["questionImage"]?.ToString();
+                var answers = data["answers"]?.ToString();
+                var correctAnswer = data["correctAnswer"]?.ToString();
+                var explanation = data["explanation"]?.ToString();
+                var selectedAnswer = data["selectedAnswer"]?.ToString();
+                var username = HttpContext.Session.GetString("Username") ?? "Unknown";
+                var timestamp = DateTime.UtcNow;
+
+                // Log the report to console for now (in production, you'd send this to a database or email)
+                Console.WriteLine($"[REPORT RECEIVED] User: {username}");
+                Console.WriteLine($"[REPORT RECEIVED] Question: {questionImage}");
+                Console.WriteLine($"[REPORT RECEIVED] Correct Answer: {correctAnswer}");
+                Console.WriteLine($"[REPORT RECEIVED] Selected Answer: {selectedAnswer}");
+                Console.WriteLine($"[REPORT RECEIVED] Explanation: {explanation}");
+                Console.WriteLine($"[REPORT RECEIVED] Timestamp: {timestamp}");
+
+                return new JsonResult(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[OnPostReportErrorAsync Error] {ex}");
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
         }
     }
 }

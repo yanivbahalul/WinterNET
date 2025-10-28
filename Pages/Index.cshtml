@@ -17,6 +17,17 @@
 <!-- כפתור התנתקות  -->
 <a href="/Logout" class="next-question-btn" style="position: fixed; top: 20px; left: 20px; text-decoration: none;">🚪 התנתקות</a>
 
+<!-- כפתור GitHub Star -->
+<div style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
+    <a href="https://github.com/yanivbahalul/WinterNET" target="_blank"
+       title="דרג את הפרויקט שלי"
+       style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+              width: 50px; height: 50px; border-radius: 50%; background-color: var(--rojo);
+              color: white; font-size: 28px; font-weight: bold; box-shadow: 0 0 10px rgba(223, 45, 47, 0.8);">
+        ⭐
+    </a>
+</div>
+
 <!-- כפתור טבלת מובילים + ניהול -->
 <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
     <a href="/Leaderboard" class="next-question-btn">🏆 מובילים</a>
@@ -84,6 +95,19 @@
             <button class="next-question-btn" style="background-color: #aa3333;">איפוס שאלות</button>
         </form>
     </div>
+
+    <!-- דווח על שאלה -->
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 32px;">
+        <form id="report-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 400px; width: 100%;">
+            <input type="hidden" name="questionImage" value="@Model.QuestionImage" />
+            <input type="hidden" name="answersJson" value='@Newtonsoft.Json.JsonConvert.SerializeObject(Model.ShuffledAnswers)' />
+            <input type="hidden" name="correctAnswer" value='@(Model.ShuffledAnswers.ContainsKey("correct") ? Model.ShuffledAnswers["correct"] : "")' />
+            <input type="hidden" name="selectedAnswer" value="@Model.SelectedAnswer" />
+            <label for="explanation" style="font-weight: bold; color: var(--rojo);">יש טעות בשאלה? דווח לנו</label>
+            <textarea name="explanation" id="explanation" required placeholder="נא לפרט מה לא תקין..." style="width: 100%; min-height: 60px; border-radius: 8px; border: 1px solid #ccc; padding: 8px; font-size: 16px; color: var(--licorice);"></textarea>
+            <button type="submit" class="next-question-btn" style="background-color: #ff9800; color: var(--licorice); font-size: 20px; padding: 12px 32px;">דווח על טעות בשאלה</button>
+        </form>
+    </div>
 </div>
 
 <!-- סטטיסטיקה תחתונה -->
@@ -99,39 +123,109 @@
 </div>
 
 <script>
-    async function fetchStats() {
-        try {
-            const res = await fetch('/Stats?_=' + new Date().getTime());
-            const data = await res.json();
-            if (data.correct !== undefined) {
-                document.getElementById('stat-correct').innerText = data.correct;
-                document.getElementById('stat-total').innerText = data.total;
-                document.getElementById('stat-success').innerText = data.successRate + '%';
-            }
-            if (data.online !== undefined) {
-                document.getElementById('online-count').innerText = data.online;
-            }
-        } catch (e) {
-            console.warn("Failed to fetch stats:", e);
+let updateInterval;
+
+async function fetchStats() {
+    try {
+        const res = await fetch('/Stats?_=' + new Date().getTime());
+        const data = await res.json();
+        if (data && data.correct !== undefined) {
+            document.getElementById('stat-correct').innerText = data.correct;
+            document.getElementById('stat-total').innerText = data.total;
+            document.getElementById('stat-success').innerText = data.successRate + '%';
         }
+    } catch (e) {
+        console.warn("Failed to fetch stats:", e);
     }
+}
 
-    function toggleStats() {
-        const panel = document.getElementById('stats-panel');
-        const toggle = document.getElementById('stats-toggle');
-        const isOpen = !panel.classList.contains('hidden');
-        panel.classList.toggle('hidden');
-        toggle.innerText = isOpen ? '⬆️' : '⬇️';
-        if (!isOpen) fetchStats();
+async function fetchOnlineCount() {
+    try {
+        const res = await fetch('/api/online-count?_=' + new Date().getTime());
+        const data = await res.json();
+        if (data && data.online !== undefined) {
+            document.getElementById('online-count').innerText = data.online;
+        }
+    } catch (e) {
+        console.warn("Failed to fetch online count:", e);
     }
+}
 
-    window.addEventListener("load", fetchStats);
-    setInterval(fetchStats, 15000);
+function toggleStats() {
+    const panel = document.getElementById('stats-panel');
+    const toggle = document.getElementById('stats-toggle');
+    const isOpen = !panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    toggle.innerText = isOpen ? '⬆️' : '⬇️';
+    if (!isOpen) {
+        fetchStats();
+        fetchOnlineCount();
+    }
+}
 
-    // ✅ עדכון מחוברים אחרי כל שליחה
-    document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", () => setTimeout(fetchStats, 2000));
+function startAutoUpdate() {
+    updateInterval = setInterval(() => {
+        fetchStats();
+        fetchOnlineCount();
+    }, 5000);
+}
+
+function stopAutoUpdate() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+}
+
+window.addEventListener("load", () => {
+    fetchStats();
+    fetchOnlineCount();
+    startAutoUpdate();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        stopAutoUpdate();
+    } else {
+        startAutoUpdate();
+    }
+});
+
+// דווח על טעות בשאלה
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('report-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key === 'answersJson') {
+                data['answers'] = value;
+            } else {
+                data[key] = value;
+            }
+        });
+
+        try {
+            const res = await fetch('/Index?handler=ReportError', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('הדיווח נשלח בהצלחה!');
+                form.reset();
+            } else {
+                alert('אירעה שגיאה בשליחת הדיווח.');
+            }
+        } catch (err) {
+            alert('אירעה שגיאה בשליחת הדיווח.');
+        }
     });
+});
 </script>
 
 <!-- הגנה מפתיחת DevTools -->

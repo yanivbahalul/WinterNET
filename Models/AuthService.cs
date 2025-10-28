@@ -374,5 +374,20 @@ namespace HelloWorldWeb.Models
                 Console.WriteLine($"[SaveUsersLocal] Error: {ex.Message}");
             }
         }
+
+        public async Task<int> GetOnlineUserCount()
+        {
+            try
+            {
+                var users = await GetAllUsers();
+                var count = users.Count(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5));
+                return count;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetOnlineUserCount] Error: {ex.Message}");
+                return 0;
+            }
+        }
     }
 }

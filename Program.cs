@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
@@ -52,6 +53,80 @@ app.MapPost("/clear-session", async context =>
     context.Response.Cookies.Delete("Username");
     context.Response.StatusCode = 200;
     await context.Response.CompleteAsync();
+});
+
+// ✅ API endpoints
+app.MapGet("/api/leaderboard-data", async context =>
+{
+    try
+    {
+        var authService = context.RequestServices.GetService<AuthService>();
+        if (authService == null)
+        {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsync("AuthService not available");
+            return;
+        }
+
+        var currentUsername = context.Session.GetString("Username") ?? "";
+        var topUsers = await authService.GetTopUsers(50);
+        
+        if (topUsers == null)
+        {
+            topUsers = new List<User>();
+        }
+        
+        var data = topUsers.Select((u, index) => new
+        {
+            rank = index + 1,
+            username = u.Username ?? "",
+            correctAnswers = u.CorrectAnswers,
+            isOnline = u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5),
+            isCurrentUser = u.Username == currentUsername
+        }).ToList();
+
+        var response = new
+        {
+            users = data,
+            currentUsername = currentUsername,
+            timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+        };
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Leaderboard API Error] {ex}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Server error: {ex.Message}");
+    }
+});
+
+app.MapGet("/api/online-count", async context =>
+{
+    try
+    {
+        var authService = context.RequestServices.GetService<AuthService>();
+        if (authService == null)
+        {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsync("AuthService not available");
+            return;
+        }
+
+        var onlineCount = await authService.GetOnlineUserCount();
+        var data = new { online = onlineCount };
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(data));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Online Count API Error] {ex}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Server error: {ex.Message}");
+    }
 });
 
 // ✅ הדפסת הפעלה

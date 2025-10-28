@@ -13,7 +13,7 @@
 ## 🌐 Live Version
 
 🔗 Available online at:  
-👉 **[https://winternet-quiz.onrender.com](https://winternet-quiz.onrender.com)**
+👉 **[https://winternet.onrender.com](https://winternet.onrender.com)**
 
 > No installation needed. Just open the site and start solving 👇
 
@@ -23,11 +23,13 @@
 
 - 🧠 Smart login with per-user statistics
 - 📊 Personal progress tracking (correct / total / success rate)
-- 🏆 Global leaderboard with auto-updating GitHub sync
+- 🏆 Global leaderboard with live updates and ticking clock
 - 🔁 Each session is unique – no repeated questions
 - 🔐 Secure session handling and persistent cookies
 - 🔁 Reset progress feature for fresh runs
 - ☁️ Fully deployed via Render
+- ⭐ GitHub star button on the quiz page
+- 📝 Report-a-question form to submit issues with a question
 
 ---
 

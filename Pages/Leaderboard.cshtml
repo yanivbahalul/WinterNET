@@ -40,7 +40,7 @@
                 <td style="padding: 10px; text-align: left; direction: ltr;">
                     @if (isOnline)
                     {
-                        <strong style="color: #00ff00;">@user.Username</strong>
+                        <strong style="color: var(--rojo);">@user.Username</strong>
                     }
                     else
                     {
@@ -105,7 +105,7 @@ function updateLeaderboardTable(data, currentUsername) {
         
         if (user.isOnline) {
             const strongElement = document.createElement('strong');
-            strongElement.style.color = '#00ff00';
+            strongElement.style.color = 'var(--rojo)';
             strongElement.textContent = user.username;
             usernameCell.appendChild(strongElement);
         } else {

@@ -357,12 +357,19 @@ namespace HelloWorldWeb.Pages
 
                 // Build pretty HTML mail body with emojis
                 var htmlBody = $@"
-<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;'>
+<!DOCTYPE html>
+<html dir='rtl' lang='he'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+</head>
+<body style='margin: 0; padding: 0; background-color: #f5f5f5;'>
+<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; direction: rtl;'>
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;'>
         <h2 style='color: white; margin: 0;'>📩 דיווח חדש התקבל מהמערכת</h2>
     </div>
     
-    <div style='background-color: white; padding: 25px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>
+    <div style='background-color: white; padding: 25px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); direction: rtl; text-align: right;'>
         <p style='font-size: 16px; color: #333; line-height: 1.8;'>
             <strong>👤 משתמש:</strong> {System.Net.WebUtility.HtmlEncode(username)}<br/>
             <strong>🕓 תאריך:</strong> {timestamp:yyyy-MM-dd HH:mm:ss}<br/>
@@ -395,7 +402,9 @@ namespace HelloWorldWeb.Pages
             🎮 Find your limits. Or crash into them.
         </p>
     </div>
-</div>";
+</div>
+</body>
+</html>";
 
                 Console.WriteLine("[OnPostReportErrorAsync] Checking EmailService...");
                 if (_emailService == null)

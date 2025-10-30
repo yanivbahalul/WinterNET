@@ -149,7 +149,12 @@ namespace HelloWorldWeb.Services
 
                 Console.WriteLine($"[EmailService] POST {url} (payload length: {json.Length})");
                 var resp = http.PostAsync(url, content).GetAwaiter().GetResult();
+                var respBody = resp.Content != null ? resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() : string.Empty;
                 Console.WriteLine($"[EmailService] SendGrid response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+                if (!string.IsNullOrWhiteSpace(respBody))
+                {
+                    Console.WriteLine($"[EmailService] SendGrid response body: {respBody}");
+                }
 
                 // SendGrid returns 202 Accepted on success
                 return (int)resp.StatusCode == 202;

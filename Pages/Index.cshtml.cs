@@ -289,7 +289,6 @@ namespace HelloWorldWeb.Pages
             QuestionImage = $"{imageBasePath}/{QuestionImage}";
         }
 
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostReportErrorAsync()
         {
             Console.WriteLine("========================================");

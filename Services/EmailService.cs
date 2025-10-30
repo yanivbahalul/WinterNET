@@ -2,10 +2,6 @@ using System;
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 
 namespace HelloWorldWeb.Services
 {
@@ -19,7 +15,6 @@ namespace HelloWorldWeb.Services
         private readonly bool _useSsl;
         private readonly string _emailTo;
         private readonly string _emailFrom;
-        private readonly string _sendGridKey; // unused when Gmail-only, kept for compatibility
 
         public bool IsConfigured { get; }
 
@@ -47,8 +42,6 @@ namespace HelloWorldWeb.Services
             if (string.IsNullOrWhiteSpace(_smtpHost)) _smtpHost = "smtp.gmail.com";
 
             // Gmail-only configuration
-            _sendGridKey = null;
-
             var smtpConfigured = !string.IsNullOrWhiteSpace(_smtpHost)
                            && !string.IsNullOrWhiteSpace(_smtpUser)
                            && !string.IsNullOrWhiteSpace(_smtpPass)

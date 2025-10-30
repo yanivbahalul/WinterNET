@@ -11,6 +11,7 @@ namespace HelloWorldWeb.Services
 {
     public class EmailService
     {
+        // SMTP fields kept for backward compatibility but unused in simplified flow
         private readonly string _smtpHost;
         private readonly int _smtpPort;
         private readonly string _smtpUser;
@@ -37,7 +38,6 @@ namespace HelloWorldWeb.Services
             var portStr = Get("Email__SmtpPort", "EmailSmtpPort");
             _smtpPort = int.TryParse(portStr, out var p) ? p : 587;
             _smtpUser = Get("Email__SmtpUser");
-            // support both Email__SmtpPass and EMAIL_SMTP_PASS; also strip spaces (Gmail app password)
             var pass = Get("Email__SmtpPass", "EMAIL_SMTP_PASS").Replace(" ", "");
             _smtpPass = string.IsNullOrWhiteSpace(pass) ? configuration["Email:SmtpPass"] ?? string.Empty : pass;
             _useSsl = (Get("Email__UseSsl", "EmailUseSsl").ToLowerInvariant() == "true") || true;
@@ -49,16 +49,12 @@ namespace HelloWorldWeb.Services
             // Optional SendGrid API key for API-based sending (Render-friendly)
             _sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
 
-            var smtpConfigured = !string.IsNullOrWhiteSpace(_smtpHost)
-                           && !string.IsNullOrWhiteSpace(_smtpUser)
-                           && !string.IsNullOrWhiteSpace(_smtpPass)
-                           && !string.IsNullOrWhiteSpace(_emailTo);
-
+            // Simplified: consider configured if SendGrid is available with from/to
             var sendGridConfigured = !string.IsNullOrWhiteSpace(_sendGridKey)
                            && !string.IsNullOrWhiteSpace(_emailFrom)
                            && !string.IsNullOrWhiteSpace(_emailTo);
 
-            IsConfigured = smtpConfigured || sendGridConfigured;
+            IsConfigured = sendGridConfigured;
 
             // DEBUG: Print configuration status
             Console.WriteLine($"[EmailService] Configuration loaded:");
@@ -102,43 +98,11 @@ namespace HelloWorldWeb.Services
             
             try
             {
-                // Prefer SendGrid when available to avoid SMTP blocks on PaaS providers
-                if (!string.IsNullOrWhiteSpace(_sendGridKey))
-                {
-                    Console.WriteLine("[EmailService] Using SendGrid API as primary sender...");
-                    var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, _sendGridKey);
-                    Console.WriteLine($"[EmailService] SendGrid primary result: {ok}");
-                    if (ok) return true;
-                    Console.WriteLine("[EmailService] SendGrid failed, attempting SMTP fallback (if configured)...");
-                }
-
-                Console.WriteLine($"[EmailService] Creating mail message...");
-                Console.WriteLine($"  - From: {_emailFrom}");
-                Console.WriteLine($"  - To: {_emailTo}");
-                using var message = new MailMessage();
-                message.From = new MailAddress(_emailFrom);
-                message.To.Add(_emailTo);
-                message.Subject = subject;
-                message.Body = htmlBody;
-                message.IsBodyHtml = true;
-
-                Console.WriteLine($"[EmailService] Connecting to SMTP server...");
-                Console.WriteLine($"  - Host: {_smtpHost}");
-                Console.WriteLine($"  - Port: {_smtpPort}");
-                Console.WriteLine($"  - SSL: {_useSsl}");
-                Console.WriteLine($"  - User: {_smtpUser}");
-                using var client = new SmtpClient(_smtpHost, _smtpPort)
-                {
-                    EnableSsl = _useSsl,
-                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                    UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(_smtpUser, _smtpPass),
-                    Timeout = 15000
-                };
-                Console.WriteLine($"[EmailService] SMTP client configured (Timeout: {client.Timeout}ms). Sending email...");
-                client.Send(message);
-                Console.WriteLine($"[EmailService] ✅ Email sent successfully via SMTP!");
-                return true;
+                // Simplest flow: SendGrid only
+                Console.WriteLine("[EmailService] Using SendGrid API (simplified mode)...");
+                var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, _sendGridKey);
+                Console.WriteLine($"[EmailService] SendGrid result: {ok}");
+                return ok;
             }
             catch (Exception ex)
             {

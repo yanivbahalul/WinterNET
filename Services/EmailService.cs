@@ -2,6 +2,10 @@ using System;
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace HelloWorldWeb.Services
 {
@@ -114,9 +118,26 @@ namespace HelloWorldWeb.Services
                 };
 
                 Console.WriteLine($"[EmailService] SMTP client configured (Timeout: {client.Timeout}ms). Sending email...");
-                client.Send(message);
-                Console.WriteLine($"[EmailService] ✅ Email sent successfully!");
-                return true;
+                try
+                {
+                    client.Send(message);
+                    Console.WriteLine($"[EmailService] ✅ Email sent successfully via SMTP!");
+                    return true;
+                }
+                catch (SmtpException smtpEx)
+                {
+                    Console.WriteLine($"[EmailService] SMTP failed: {smtpEx.Message}");
+                    // fallback to SendGrid if available
+                    var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+                    if (!string.IsNullOrWhiteSpace(sendGridKey))
+                    {
+                        Console.WriteLine("[EmailService] Attempting fallback via SendGrid API...");
+                        var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, sendGridKey);
+                        Console.WriteLine($"[EmailService] SendGrid fallback result: {ok}");
+                        return ok;
+                    }
+                    throw; // rethrow to outer catch for unified logging
+                }
             }
             catch (Exception ex)
             {
@@ -128,6 +149,65 @@ namespace HelloWorldWeb.Services
                 {
                     Console.WriteLine($"  - Inner Exception: {ex.InnerException.Message}");
                 }
+                // final attempt: if not tried yet and SendGrid key exists, try SendGrid
+                try
+                {
+                    var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+                    if (!string.IsNullOrWhiteSpace(sendGridKey))
+                    {
+                        Console.WriteLine("[EmailService] Final attempt via SendGrid API after exception...");
+                        var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, sendGridKey);
+                        Console.WriteLine($"[EmailService] SendGrid final attempt result: {ok}");
+                        return ok;
+                    }
+                }
+                catch (Exception sgEx)
+                {
+                    Console.WriteLine($"[EmailService] SendGrid attempt failed: {sgEx.Message}");
+                }
+                return false;
+            }
+        }
+
+        private bool SendViaSendGrid(string fromEmail, string toEmail, string subject, string htmlBody, string apiKey)
+        {
+            try
+            {
+                using var http = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(15)
+                };
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var payload = new
+                {
+                    personalizations = new[] {
+                        new {
+                            to = new[] { new { email = toEmail } }
+                        }
+                    },
+                    from = new { email = fromEmail },
+                    subject = subject,
+                    content = new[] {
+                        new { type = "text/html", value = htmlBody }
+                    }
+                };
+
+                var json = JsonSerializer.Serialize(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var url = "https://api.sendgrid.com/v3/mail/send";
+
+                Console.WriteLine($"[EmailService] POST {url} (payload length: {json.Length})");
+                var resp = http.PostAsync(url, content).GetAwaiter().GetResult();
+                Console.WriteLine($"[EmailService] SendGrid response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
+
+                // SendGrid returns 202 Accepted on success
+                return (int)resp.StatusCode == 202;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EmailService] SendViaSendGrid error: {ex.Message}");
                 return false;
             }
         }

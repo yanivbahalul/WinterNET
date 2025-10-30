@@ -19,6 +19,8 @@ namespace HelloWorldWeb.Services
 
         public EmailService(IConfiguration configuration)
         {
+            Console.WriteLine("[EmailService] Initializing EmailService...");
+            
             string Get(string primary, string fallback1 = null, string fallback2 = null)
                 => Environment.GetEnvironmentVariable(primary)
                    ?? (fallback1 != null ? Environment.GetEnvironmentVariable(fallback1) : null)
@@ -43,13 +45,52 @@ namespace HelloWorldWeb.Services
                            && !string.IsNullOrWhiteSpace(_smtpUser)
                            && !string.IsNullOrWhiteSpace(_smtpPass)
                            && !string.IsNullOrWhiteSpace(_emailTo);
+
+            // DEBUG: Print configuration status
+            Console.WriteLine($"[EmailService] Configuration loaded:");
+            Console.WriteLine($"  - SmtpHost: {(_smtpHost ?? "NULL")}");
+            Console.WriteLine($"  - SmtpPort: {_smtpPort}");
+            Console.WriteLine($"  - SmtpUser: {(_smtpUser ?? "NULL")}");
+            Console.WriteLine($"  - SmtpPass: {(string.IsNullOrWhiteSpace(_smtpPass) ? "NULL/EMPTY" : "***SET***")}");
+            Console.WriteLine($"  - UseSsl: {_useSsl}");
+            Console.WriteLine($"  - EmailTo: {(_emailTo ?? "NULL")}");
+            Console.WriteLine($"  - EmailFrom: {(_emailFrom ?? "NULL")}");
+            Console.WriteLine($"  - IsConfigured: {IsConfigured}");
+            
+            if (!IsConfigured)
+            {
+                Console.WriteLine("[EmailService] ❌ WARNING: EmailService is NOT properly configured!");
+                Console.WriteLine("[EmailService] Missing configuration:");
+                if (string.IsNullOrWhiteSpace(_smtpHost)) Console.WriteLine("  - SmtpHost is missing");
+                if (string.IsNullOrWhiteSpace(_smtpUser)) Console.WriteLine("  - SmtpUser is missing");
+                if (string.IsNullOrWhiteSpace(_smtpPass)) Console.WriteLine("  - SmtpPass is missing");
+                if (string.IsNullOrWhiteSpace(_emailTo)) Console.WriteLine("  - EmailTo (EMAIL_TO) is missing");
+            }
+            else
+            {
+                Console.WriteLine("[EmailService] ✅ EmailService is properly configured");
+            }
         }
 
         public bool Send(string subject, string htmlBody)
         {
-            if (!IsConfigured) return false;
+            Console.WriteLine($"[EmailService] Send() called");
+            Console.WriteLine($"  - Subject: {subject}");
+            Console.WriteLine($"  - Body length: {htmlBody?.Length ?? 0} chars");
+            Console.WriteLine($"  - IsConfigured: {IsConfigured}");
+            
+            if (!IsConfigured)
+            {
+                Console.WriteLine("[EmailService] ❌ Cannot send - EmailService is NOT configured");
+                return false;
+            }
+            
             try
             {
+                Console.WriteLine($"[EmailService] Creating mail message...");
+                Console.WriteLine($"  - From: {_emailFrom}");
+                Console.WriteLine($"  - To: {_emailTo}");
+                
                 using var message = new MailMessage();
                 message.From = new MailAddress(_emailFrom);
                 message.To.Add(_emailTo);
@@ -57,18 +98,33 @@ namespace HelloWorldWeb.Services
                 message.Body = htmlBody;
                 message.IsBodyHtml = true;
 
+                Console.WriteLine($"[EmailService] Connecting to SMTP server...");
+                Console.WriteLine($"  - Host: {_smtpHost}");
+                Console.WriteLine($"  - Port: {_smtpPort}");
+                Console.WriteLine($"  - SSL: {_useSsl}");
+                Console.WriteLine($"  - User: {_smtpUser}");
+                
                 using var client = new SmtpClient(_smtpHost, _smtpPort)
                 {
                     EnableSsl = _useSsl,
                     Credentials = new NetworkCredential(_smtpUser, _smtpPass)
                 };
 
+                Console.WriteLine($"[EmailService] Sending email...");
                 client.Send(message);
+                Console.WriteLine($"[EmailService] ✅ Email sent successfully!");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[EmailService] Send failed: {ex.Message}");
+                Console.WriteLine($"[EmailService] ❌ Send failed!");
+                Console.WriteLine($"  - Exception type: {ex.GetType().Name}");
+                Console.WriteLine($"  - Message: {ex.Message}");
+                Console.WriteLine($"  - StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"  - Inner Exception: {ex.InnerException.Message}");
+                }
                 return false;
             }
         }

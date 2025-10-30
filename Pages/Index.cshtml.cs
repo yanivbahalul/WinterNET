@@ -292,14 +292,26 @@ namespace HelloWorldWeb.Pages
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostReportErrorAsync()
         {
+            Console.WriteLine("========================================");
+            Console.WriteLine("[OnPostReportErrorAsync] START - Report received");
+            Console.WriteLine("========================================");
+            
             try
             {
+                Console.WriteLine("[OnPostReportErrorAsync] Reading request body...");
                 string body;
                 using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
                     body = await reader.ReadToEndAsync();
+                
+                Console.WriteLine($"[OnPostReportErrorAsync] Body length: {body?.Length ?? 0} chars");
+                
                 if (string.IsNullOrWhiteSpace(body))
+                {
+                    Console.WriteLine("[OnPostReportErrorAsync] ❌ Empty body received");
                     return new JsonResult(new { error = "Empty body" }) { StatusCode = 400 };
+                }
 
+                Console.WriteLine("[OnPostReportErrorAsync] Parsing JSON data...");
                 var data = Newtonsoft.Json.Linq.JObject.Parse(body);
                 var questionImage = data["questionImage"]?.ToString();
                 var answers = data["answers"]?.ToString();
@@ -308,6 +320,14 @@ namespace HelloWorldWeb.Pages
                 var selectedAnswer = data["selectedAnswer"]?.ToString();
                 var username = HttpContext.Session.GetString("Username") ?? "Unknown";
                 var timestamp = DateTime.UtcNow;
+
+                Console.WriteLine("[OnPostReportErrorAsync] Report data:");
+                Console.WriteLine($"  - Username: {username}");
+                Console.WriteLine($"  - QuestionImage: {questionImage}");
+                Console.WriteLine($"  - CorrectAnswer: {correctAnswer}");
+                Console.WriteLine($"  - SelectedAnswer: {selectedAnswer}");
+                Console.WriteLine($"  - Explanation: {explanation}");
+                Console.WriteLine($"  - Timestamp: {timestamp:yyyy-MM-dd HH:mm:ss}");
 
                 // Build HTML mail body
                 var htmlBody = $@"<div dir='rtl' style='text-align:right; font-family:Arial,sans-serif;'>
@@ -320,14 +340,37 @@ namespace HelloWorldWeb.Pages
                     פירוט: {System.Net.WebUtility.HtmlEncode(explanation)}
                 </div>";
 
-                var sent = _emailService?.Send($"[WinterNET] דיווח טעות — {username}", htmlBody) ?? false;
-                Console.WriteLine($"[REPORT RECEIVED] Mail sent: {sent}");
+                Console.WriteLine("[OnPostReportErrorAsync] Checking EmailService...");
+                if (_emailService == null)
+                {
+                    Console.WriteLine("[OnPostReportErrorAsync] ❌ EmailService is NULL!");
+                }
+                else
+                {
+                    Console.WriteLine($"[OnPostReportErrorAsync] EmailService exists, IsConfigured: {_emailService.IsConfigured}");
+                }
 
-                return new JsonResult(new { success = true });
+                Console.WriteLine("[OnPostReportErrorAsync] Attempting to send email...");
+                var sent = _emailService?.Send($"[WinterNET] דיווח טעות — {username}", htmlBody) ?? false;
+                
+                Console.WriteLine("========================================");
+                Console.WriteLine($"[OnPostReportErrorAsync] RESULT: Mail sent = {sent}");
+                Console.WriteLine("========================================");
+
+                return new JsonResult(new { success = true, emailSent = sent });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[OnPostReportErrorAsync Error] {ex}");
+                Console.WriteLine("========================================");
+                Console.WriteLine($"[OnPostReportErrorAsync] ❌ ERROR occurred!");
+                Console.WriteLine($"  - Exception type: {ex.GetType().Name}");
+                Console.WriteLine($"  - Message: {ex.Message}");
+                Console.WriteLine($"  - StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"  - Inner Exception: {ex.InnerException.Message}");
+                }
+                Console.WriteLine("========================================");
                 return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
             }
         }

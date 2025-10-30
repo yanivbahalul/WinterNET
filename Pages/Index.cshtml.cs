@@ -349,7 +349,7 @@ namespace HelloWorldWeb.Pages
                     var wrongC = answersDict.ContainsKey("c") ? Path.GetFileName(answersDict["c"] ?? "") : "";
                     
                     answersList = $@"
-            <span style='display: inline-block; width: 30px;'><strong>A:</strong></span> {System.Net.WebUtility.HtmlEncode(correctAnswerFile)} <span style='color: #28a745; font-weight: bold;'>✓ נכון</span><br/>
+            <span style='display: inline-block; width: 30px; color: #28a745;'><strong>A:</strong></span> <span style='color: #28a745;'>{System.Net.WebUtility.HtmlEncode(correctAnswerFile)}</span><br/>
             <span style='display: inline-block; width: 30px;'><strong>B:</strong></span> {System.Net.WebUtility.HtmlEncode(wrongA)}<br/>
             <span style='display: inline-block; width: 30px;'><strong>C:</strong></span> {System.Net.WebUtility.HtmlEncode(wrongB)}<br/>
             <span style='display: inline-block; width: 30px;'><strong>D:</strong></span> {System.Net.WebUtility.HtmlEncode(wrongC)}<br/>";
@@ -380,7 +380,7 @@ namespace HelloWorldWeb.Pages
         </p>
         
         <p style='font-size: 16px; color: #333; margin-top: 15px;'>
-            <strong>❌ תשובה שסומנה על ידי המשתמש:</strong> {System.Net.WebUtility.HtmlEncode(selectedAnswer ?? "לא סומנה")}<br/>
+            <strong>❌ תשובה שסומנה על ידי המשתמש:</strong> {System.Net.WebUtility.HtmlEncode((selectedAnswer ?? "לא סומנה").ToUpper())}<br/>
         </p>
         
         {(!string.IsNullOrWhiteSpace(explanation) ? $@"

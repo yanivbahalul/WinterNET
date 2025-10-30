@@ -107,10 +107,13 @@ namespace HelloWorldWeb.Services
                 using var client = new SmtpClient(_smtpHost, _smtpPort)
                 {
                     EnableSsl = _useSsl,
-                    Credentials = new NetworkCredential(_smtpUser, _smtpPass)
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(_smtpUser, _smtpPass),
+                    Timeout = 15000 // 15s to avoid indefinite hang on providers blocking SMTP
                 };
 
-                Console.WriteLine($"[EmailService] Sending email...");
+                Console.WriteLine($"[EmailService] SMTP client configured (Timeout: {client.Timeout}ms). Sending email...");
                 client.Send(message);
                 Console.WriteLine($"[EmailService] ✅ Email sent successfully!");
                 return true;

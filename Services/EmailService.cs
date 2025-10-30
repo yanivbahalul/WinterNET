@@ -11,7 +11,7 @@ namespace HelloWorldWeb.Services
 {
     public class EmailService
     {
-        // SMTP fields kept for backward compatibility but unused in simplified flow
+        // SMTP fields for Gmail sending
         private readonly string _smtpHost;
         private readonly int _smtpPort;
         private readonly string _smtpUser;
@@ -19,7 +19,7 @@ namespace HelloWorldWeb.Services
         private readonly bool _useSsl;
         private readonly string _emailTo;
         private readonly string _emailFrom;
-        private readonly string _sendGridKey;
+        private readonly string _sendGridKey; // unused when Gmail-only, kept for compatibility
 
         public bool IsConfigured { get; }
 
@@ -46,15 +46,16 @@ namespace HelloWorldWeb.Services
             if (string.IsNullOrWhiteSpace(_emailFrom)) _emailFrom = _smtpUser;
             if (string.IsNullOrWhiteSpace(_smtpHost)) _smtpHost = "smtp.gmail.com";
 
-            // Optional SendGrid API key for API-based sending (Render-friendly)
-            _sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+            // Gmail-only configuration
+            _sendGridKey = null;
 
-            // Simplified: consider configured if SendGrid is available with from/to
-            var sendGridConfigured = !string.IsNullOrWhiteSpace(_sendGridKey)
-                           && !string.IsNullOrWhiteSpace(_emailFrom)
-                           && !string.IsNullOrWhiteSpace(_emailTo);
+            var smtpConfigured = !string.IsNullOrWhiteSpace(_smtpHost)
+                           && !string.IsNullOrWhiteSpace(_smtpUser)
+                           && !string.IsNullOrWhiteSpace(_smtpPass)
+                           && !string.IsNullOrWhiteSpace(_emailTo)
+                           && !string.IsNullOrWhiteSpace(_emailFrom);
 
-            IsConfigured = sendGridConfigured;
+            IsConfigured = smtpConfigured;
 
             // DEBUG: Print configuration status
             Console.WriteLine($"[EmailService] Configuration loaded:");
@@ -66,7 +67,7 @@ namespace HelloWorldWeb.Services
             Console.WriteLine($"  - EmailTo: {(_emailTo ?? "NULL")}");
             Console.WriteLine($"  - EmailFrom: {(_emailFrom ?? "NULL")}");
             Console.WriteLine($"  - IsConfigured: {IsConfigured}");
-            Console.WriteLine($"  - SendGrid: {(string.IsNullOrWhiteSpace(_sendGridKey) ? "NOT SET" : "SET")}");
+            Console.WriteLine($"  - SendGrid: DISABLED");
             
             if (!IsConfigured)
             {
@@ -98,11 +99,36 @@ namespace HelloWorldWeb.Services
             
             try
             {
-                // Simplest flow: SendGrid only
-                Console.WriteLine("[EmailService] Using SendGrid API (simplified mode)...");
-                var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, _sendGridKey);
-                Console.WriteLine($"[EmailService] SendGrid result: {ok}");
-                return ok;
+                Console.WriteLine($"[EmailService] Creating mail message (Gmail SMTP)...");
+                Console.WriteLine($"  - From: {_emailFrom}");
+                Console.WriteLine($"  - To: {_emailTo}");
+
+                using var message = new MailMessage();
+                message.From = new MailAddress(_emailFrom);
+                message.To.Add(_emailTo);
+                message.Subject = subject;
+                message.Body = htmlBody;
+                message.IsBodyHtml = true;
+
+                Console.WriteLine($"[EmailService] Connecting to SMTP server...");
+                Console.WriteLine($"  - Host: {_smtpHost}");
+                Console.WriteLine($"  - Port: {_smtpPort}");
+                Console.WriteLine($"  - SSL: {_useSsl}");
+                Console.WriteLine($"  - User: {_smtpUser}");
+
+                using var client = new SmtpClient(_smtpHost, _smtpPort)
+                {
+                    EnableSsl = _useSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(_smtpUser, _smtpPass),
+                    Timeout = 15000
+                };
+
+                Console.WriteLine($"[EmailService] SMTP client configured (Timeout: {client.Timeout}ms). Sending email...");
+                client.Send(message);
+                Console.WriteLine($"[EmailService] ✅ Email sent successfully via Gmail SMTP!");
+                return true;
             }
             catch (Exception ex)
             {
@@ -114,54 +140,6 @@ namespace HelloWorldWeb.Services
                 {
                     Console.WriteLine($"  - Inner Exception: {ex.InnerException.Message}");
                 }
-                return false;
-            }
-        }
-
-        private bool SendViaSendGrid(string fromEmail, string toEmail, string subject, string htmlBody, string apiKey)
-        {
-            try
-            {
-                using var http = new HttpClient
-                {
-                    Timeout = TimeSpan.FromSeconds(15)
-                };
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var payload = new
-                {
-                    personalizations = new[] {
-                        new {
-                            to = new[] { new { email = toEmail } }
-                        }
-                    },
-                    from = new { email = fromEmail },
-                    subject = subject,
-                    content = new[] {
-                        new { type = "text/html", value = htmlBody }
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var url = "https://api.sendgrid.com/v3/mail/send";
-
-                Console.WriteLine($"[EmailService] POST {url} (payload length: {json.Length})");
-                var resp = http.PostAsync(url, content).GetAwaiter().GetResult();
-                var respBody = resp.Content != null ? resp.Content.ReadAsStringAsync().GetAwaiter().GetResult() : string.Empty;
-                Console.WriteLine($"[EmailService] SendGrid response: {(int)resp.StatusCode} {resp.ReasonPhrase}");
-                if (!string.IsNullOrWhiteSpace(respBody))
-                {
-                    Console.WriteLine($"[EmailService] SendGrid response body: {respBody}");
-                }
-
-                // SendGrid returns 202 Accepted on success
-                return (int)resp.StatusCode == 202;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[EmailService] SendViaSendGrid error: {ex.Message}");
                 return false;
             }
         }

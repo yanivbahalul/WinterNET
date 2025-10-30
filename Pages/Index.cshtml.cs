@@ -339,6 +339,22 @@ namespace HelloWorldWeb.Pages
                 }
                 catch { }
 
+                // Build answers list: A = correct (always), B/C/D = wrong answers
+                string answersList = "";
+                if (answersDict != null)
+                {
+                    var correctAnswerFile = answersDict.ContainsKey("correct") ? Path.GetFileName(answersDict["correct"] ?? "") : "";
+                    var wrongA = answersDict.ContainsKey("a") ? Path.GetFileName(answersDict["a"] ?? "") : "";
+                    var wrongB = answersDict.ContainsKey("b") ? Path.GetFileName(answersDict["b"] ?? "") : "";
+                    var wrongC = answersDict.ContainsKey("c") ? Path.GetFileName(answersDict["c"] ?? "") : "";
+                    
+                    answersList = $@"
+            <span style='display: inline-block; width: 30px;'><strong>A:</strong></span> {System.Net.WebUtility.HtmlEncode(correctAnswerFile)} <span style='color: #28a745; font-weight: bold;'>✓ נכון</span><br/>
+            <span style='display: inline-block; width: 30px;'><strong>B:</strong></span> {System.Net.WebUtility.HtmlEncode(wrongA)}<br/>
+            <span style='display: inline-block; width: 30px;'><strong>C:</strong></span> {System.Net.WebUtility.HtmlEncode(wrongB)}<br/>
+            <span style='display: inline-block; width: 30px;'><strong>D:</strong></span> {System.Net.WebUtility.HtmlEncode(wrongC)}<br/>";
+                }
+
                 // Build pretty HTML mail body with emojis
                 var htmlBody = $@"
 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;'>
@@ -360,14 +376,11 @@ namespace HelloWorldWeb.Pages
         
         <p style='font-size: 15px; color: #555; margin-top: 15px;'>
             <strong>📝 תשובות אפשריות:</strong><br/><br/>
-            {(answersDict != null ? string.Join("<br/>", answersDict
-                .Where(kv => kv.Key != "correct")
-                .OrderBy(kv => kv.Key)
-                .Select((kv, idx) => $"<span style='display: inline-block; width: 30px;'><strong>{(char)('A' + idx)}:</strong></span> {System.Net.WebUtility.HtmlEncode(Path.GetFileName(kv.Value ?? ""))}")) : "")}
+            {answersList}
         </p>
         
         <p style='font-size: 16px; color: #333; margin-top: 15px;'>
-            <strong>❌ תשובה שסומנה:</strong> {System.Net.WebUtility.HtmlEncode(selectedAnswer ?? "לא סומנה")}<br/>
+            <strong>❌ תשובה שסומנה על ידי המשתמש:</strong> {System.Net.WebUtility.HtmlEncode(selectedAnswer ?? "לא סומנה")}<br/>
         </p>
         
         {(!string.IsNullOrWhiteSpace(explanation) ? $@"

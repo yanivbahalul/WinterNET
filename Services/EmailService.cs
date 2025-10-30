@@ -18,6 +18,7 @@ namespace HelloWorldWeb.Services
         private readonly bool _useSsl;
         private readonly string _emailTo;
         private readonly string _emailFrom;
+        private readonly string _sendGridKey;
 
         public bool IsConfigured { get; }
 
@@ -45,10 +46,19 @@ namespace HelloWorldWeb.Services
             if (string.IsNullOrWhiteSpace(_emailFrom)) _emailFrom = _smtpUser;
             if (string.IsNullOrWhiteSpace(_smtpHost)) _smtpHost = "smtp.gmail.com";
 
-            IsConfigured = !string.IsNullOrWhiteSpace(_smtpHost)
+            // Optional SendGrid API key for API-based sending (Render-friendly)
+            _sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+
+            var smtpConfigured = !string.IsNullOrWhiteSpace(_smtpHost)
                            && !string.IsNullOrWhiteSpace(_smtpUser)
                            && !string.IsNullOrWhiteSpace(_smtpPass)
                            && !string.IsNullOrWhiteSpace(_emailTo);
+
+            var sendGridConfigured = !string.IsNullOrWhiteSpace(_sendGridKey)
+                           && !string.IsNullOrWhiteSpace(_emailFrom)
+                           && !string.IsNullOrWhiteSpace(_emailTo);
+
+            IsConfigured = smtpConfigured || sendGridConfigured;
 
             // DEBUG: Print configuration status
             Console.WriteLine($"[EmailService] Configuration loaded:");
@@ -60,6 +70,7 @@ namespace HelloWorldWeb.Services
             Console.WriteLine($"  - EmailTo: {(_emailTo ?? "NULL")}");
             Console.WriteLine($"  - EmailFrom: {(_emailFrom ?? "NULL")}");
             Console.WriteLine($"  - IsConfigured: {IsConfigured}");
+            Console.WriteLine($"  - SendGrid: {(string.IsNullOrWhiteSpace(_sendGridKey) ? "NOT SET" : "SET")}");
             
             if (!IsConfigured)
             {
@@ -91,10 +102,19 @@ namespace HelloWorldWeb.Services
             
             try
             {
+                // Prefer SendGrid when available to avoid SMTP blocks on PaaS providers
+                if (!string.IsNullOrWhiteSpace(_sendGridKey))
+                {
+                    Console.WriteLine("[EmailService] Using SendGrid API as primary sender...");
+                    var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, _sendGridKey);
+                    Console.WriteLine($"[EmailService] SendGrid primary result: {ok}");
+                    if (ok) return true;
+                    Console.WriteLine("[EmailService] SendGrid failed, attempting SMTP fallback (if configured)...");
+                }
+
                 Console.WriteLine($"[EmailService] Creating mail message...");
                 Console.WriteLine($"  - From: {_emailFrom}");
                 Console.WriteLine($"  - To: {_emailTo}");
-                
                 using var message = new MailMessage();
                 message.From = new MailAddress(_emailFrom);
                 message.To.Add(_emailTo);
@@ -107,37 +127,18 @@ namespace HelloWorldWeb.Services
                 Console.WriteLine($"  - Port: {_smtpPort}");
                 Console.WriteLine($"  - SSL: {_useSsl}");
                 Console.WriteLine($"  - User: {_smtpUser}");
-                
                 using var client = new SmtpClient(_smtpHost, _smtpPort)
                 {
                     EnableSsl = _useSsl,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
                     Credentials = new NetworkCredential(_smtpUser, _smtpPass),
-                    Timeout = 15000 // 15s to avoid indefinite hang on providers blocking SMTP
+                    Timeout = 15000
                 };
-
                 Console.WriteLine($"[EmailService] SMTP client configured (Timeout: {client.Timeout}ms). Sending email...");
-                try
-                {
-                    client.Send(message);
-                    Console.WriteLine($"[EmailService] ✅ Email sent successfully via SMTP!");
-                    return true;
-                }
-                catch (SmtpException smtpEx)
-                {
-                    Console.WriteLine($"[EmailService] SMTP failed: {smtpEx.Message}");
-                    // fallback to SendGrid if available
-                    var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-                    if (!string.IsNullOrWhiteSpace(sendGridKey))
-                    {
-                        Console.WriteLine("[EmailService] Attempting fallback via SendGrid API...");
-                        var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, sendGridKey);
-                        Console.WriteLine($"[EmailService] SendGrid fallback result: {ok}");
-                        return ok;
-                    }
-                    throw; // rethrow to outer catch for unified logging
-                }
+                client.Send(message);
+                Console.WriteLine($"[EmailService] ✅ Email sent successfully via SMTP!");
+                return true;
             }
             catch (Exception ex)
             {
@@ -148,22 +149,6 @@ namespace HelloWorldWeb.Services
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"  - Inner Exception: {ex.InnerException.Message}");
-                }
-                // final attempt: if not tried yet and SendGrid key exists, try SendGrid
-                try
-                {
-                    var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-                    if (!string.IsNullOrWhiteSpace(sendGridKey))
-                    {
-                        Console.WriteLine("[EmailService] Final attempt via SendGrid API after exception...");
-                        var ok = SendViaSendGrid(_emailFrom, _emailTo, subject, htmlBody, sendGridKey);
-                        Console.WriteLine($"[EmailService] SendGrid final attempt result: {ok}");
-                        return ok;
-                    }
-                }
-                catch (Exception sgEx)
-                {
-                    Console.WriteLine($"[EmailService] SendGrid attempt failed: {sgEx.Message}");
                 }
                 return false;
             }

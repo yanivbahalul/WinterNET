@@ -313,7 +313,7 @@ namespace HelloWorldWeb.Pages
                 Console.WriteLine("[OnPostReportErrorAsync] Parsing JSON data...");
                 var data = Newtonsoft.Json.Linq.JObject.Parse(body);
                 var questionImage = data["questionImage"]?.ToString();
-                var answers = data["answers"]?.ToString();
+                var answersJson = data["answers"]?.ToString();
                 var correctAnswer = data["correctAnswer"]?.ToString();
                 var explanation = data["explanation"]?.ToString();
                 var selectedAnswer = data["selectedAnswer"]?.ToString();
@@ -328,16 +328,61 @@ namespace HelloWorldWeb.Pages
                 Console.WriteLine($"  - Explanation: {explanation}");
                 Console.WriteLine($"  - Timestamp: {timestamp:yyyy-MM-dd HH:mm:ss}");
 
-                // Build HTML mail body
-                var htmlBody = $@"<div dir='rtl' style='text-align:right; font-family:Arial,sans-serif;'>
-                    <b>דיווח חדש התקבל</b><br/><br/>
-                    משתמש: {username}<br/>
-                    תאריך: {timestamp:yyyy-MM-dd HH:mm:ss}<br/><br/>
-                    שאלה: {System.Net.WebUtility.HtmlEncode(questionImage)}<br/>
-                    תשובה נכונה: {System.Net.WebUtility.HtmlEncode(correctAnswer)}<br/>
-                    תשובה שסומנה: {System.Net.WebUtility.HtmlEncode(selectedAnswer)}<br/><br/>
-                    פירוט: {System.Net.WebUtility.HtmlEncode(explanation)}
-                </div>";
+                // Parse answers to get A, B, C, D
+                Dictionary<string, string> answersDict = null;
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(answersJson))
+                    {
+                        answersDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(answersJson);
+                    }
+                }
+                catch { }
+
+                // Build pretty HTML mail body with emojis
+                var htmlBody = $@"
+<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;'>
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;'>
+        <h2 style='color: white; margin: 0;'>📩 דיווח חדש התקבל מהמערכת</h2>
+    </div>
+    
+    <div style='background-color: white; padding: 25px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>
+        <p style='font-size: 16px; color: #333; line-height: 1.8;'>
+            <strong>👤 משתמש:</strong> {System.Net.WebUtility.HtmlEncode(username)}<br/>
+            <strong>🕓 תאריך:</strong> {timestamp:yyyy-MM-dd HH:mm:ss}<br/>
+        </p>
+        
+        <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'/>
+        
+        <p style='font-size: 16px; color: #333;'>
+            <strong>❓ שאלה:</strong> {System.Net.WebUtility.HtmlEncode(Path.GetFileName(questionImage ?? ""))}<br/>
+        </p>
+        
+        <p style='font-size: 15px; color: #555; margin-top: 15px;'>
+            <strong>📝 תשובות אפשריות:</strong><br/><br/>
+            {(answersDict != null ? string.Join("<br/>", answersDict
+                .Where(kv => kv.Key != "correct")
+                .OrderBy(kv => kv.Key)
+                .Select((kv, idx) => $"<span style='display: inline-block; width: 30px;'><strong>{(char)('A' + idx)}:</strong></span> {System.Net.WebUtility.HtmlEncode(Path.GetFileName(kv.Value ?? ""))}")) : "")}
+        </p>
+        
+        <p style='font-size: 16px; color: #333; margin-top: 15px;'>
+            <strong>❌ תשובה שסומנה:</strong> {System.Net.WebUtility.HtmlEncode(selectedAnswer ?? "לא סומנה")}<br/>
+        </p>
+        
+        {(!string.IsNullOrWhiteSpace(explanation) ? $@"
+        <div style='background-color: #fff3cd; border-right: 4px solid #ffc107; padding: 15px; margin-top: 20px; border-radius: 5px;'>
+            <strong>💬 סיבה:</strong> {System.Net.WebUtility.HtmlEncode(explanation)}
+        </div>" : "")}
+        
+        <hr style='border: none; border-top: 1px solid #eee; margin: 25px 0;'/>
+        
+        <p style='text-align: center; color: #888; font-size: 14px;'>
+            <strong>מערכת: WinterNET</strong><br/>
+            🎮 Find your limits. Or crash into them.
+        </p>
+    </div>
+</div>";
 
                 Console.WriteLine("[OnPostReportErrorAsync] Checking EmailService...");
                 if (_emailService == null)

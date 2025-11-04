@@ -18,18 +18,22 @@ namespace HelloWorldWeb.Pages
     {
         private readonly AuthService _authService;
         private readonly EmailService _emailService;
+        private readonly SupabaseStorageService _storage;
 
-        public IndexModel(AuthService authService, EmailService emailService)
+        public IndexModel(AuthService authService, EmailService emailService, SupabaseStorageService storage = null)
         {
             _authService = authService;
             _emailService = emailService;
+            _storage = storage;
         }
 
         public bool AnswerChecked { get; set; }
         public bool IsCorrect { get; set; }
         public string SelectedAnswer { get; set; }
         public string QuestionImage { get; set; }
+        public string QuestionImageUrl { get; set; }
         public Dictionary<string, string> ShuffledAnswers { get; set; }
+        public Dictionary<string, string> AnswerImageUrls { get; set; }
         public string Username { get; set; }
         public string ConnectionStatus { get; set; }
         public int OnlineCount { get; set; }
@@ -82,7 +86,7 @@ namespace HelloWorldWeb.Pages
 
             ConnectionStatus = "✅ Supabase connection OK";
 
-            LoadRandomQuestion();
+            await LoadRandomQuestionAsync();
             return Page();
         }
 
@@ -125,7 +129,7 @@ namespace HelloWorldWeb.Pages
 
             if (string.IsNullOrEmpty(answersJson))
             {
-                LoadRandomQuestion();
+                await LoadRandomQuestionAsync();
                 return Page();
             }
 
@@ -134,6 +138,9 @@ namespace HelloWorldWeb.Pages
             QuestionImage = questionImage;
             ShuffledAnswers = JsonConvert.DeserializeObject<Dictionary<string, string>>(answersJson);
             IsCorrect = answer == "correct";
+            
+            // Load URLs for display
+            await LoadAnswerUrlsAsync(questionImage, ShuffledAnswers);
 
             user.TotalAnswered++;
             if (IsCorrect)
@@ -237,22 +244,33 @@ namespace HelloWorldWeb.Pages
             }
         }
 
-        private void LoadRandomQuestion()
+        private async Task LoadRandomQuestionAsync()
         {
-            // ניסיון לטעון מהמאגר החדש - quiz_images
-            var imagesDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "quiz_images");
+            List<string> allImages;
             
-            // אם אין תיקייה כזו, חזור לתיקייה הישנה (images) לשם תאימות
-            if (!Directory.Exists(imagesDir))
+            // Try to load from Supabase Storage first
+            if (_storage != null)
             {
-                imagesDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                try
+                {
+                    var images = await _storage.ListFilesAsync("");
+                    allImages = images
+                        .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
+                        .OrderBy(name => name)
+                        .ToList();
+                    
+                    Console.WriteLine($"✅ Loaded {allImages.Count} images from Supabase Storage");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error loading from Storage: {ex.Message}, falling back to local files");
+                    allImages = LoadLocalImages();
+                }
             }
-
-            var allImages = Directory.GetFiles(imagesDir)
-                .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
-                .Select(Path.GetFileName)
-                .OrderBy(name => name)
-                .ToList();
+            else
+            {
+                allImages = LoadLocalImages();
+            }
 
             var grouped = new List<List<string>>();
             for (int i = 0; i + 4 < allImages.Count; i += 5)
@@ -261,7 +279,9 @@ namespace HelloWorldWeb.Pages
             if (grouped.Count == 0)
             {
                 QuestionImage = "placeholder.jpg";
+                QuestionImageUrl = "/quiz_images/placeholder.jpg";
                 ShuffledAnswers = new Dictionary<string, string>();
+                AnswerImageUrls = new Dictionary<string, string>();
                 return;
             }
 
@@ -270,23 +290,132 @@ namespace HelloWorldWeb.Pages
             var correct = chosen[1];
             var wrong = chosen.Skip(2).Take(3).ToList();
 
-            // קביעת נתיב התמונות - quiz_images או images
+            // Prepare answer keys (without URLs yet)
+            var answersList = new List<(string key, string img)>
+            {
+                ("correct", correct),
+                ("a", wrong[0]),
+                ("b", wrong[1]),
+                ("c", wrong[2])
+            }
+            .OrderBy(x => Guid.NewGuid())
+            .ToList();
+
+            ShuffledAnswers = answersList.ToDictionary(x => x.key, x => x.img);
+
+            // Generate URLs (either signed URLs from Storage or local paths)
+            if (_storage != null)
+            {
+                try
+                {
+                    var paths = new List<string> { QuestionImage };
+                    paths.AddRange(answersList.Select(a => a.img));
+                    var signedUrls = await _storage.GetSignedUrlsAsync(paths);
+                    
+                    QuestionImageUrl = signedUrls.TryGetValue(QuestionImage, out var qUrl) ? qUrl : string.Empty;
+                    AnswerImageUrls = new Dictionary<string, string>();
+                    foreach (var answer in answersList)
+                    {
+                        if (signedUrls.TryGetValue(answer.img, out var aUrl))
+                        {
+                            AnswerImageUrls[answer.key] = aUrl;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error getting signed URLs: {ex.Message}");
+                    UseLocalPaths(chosen, answersList);
+                }
+            }
+            else
+            {
+                UseLocalPaths(chosen, answersList);
+            }
+        }
+
+        private List<string> LoadLocalImages()
+        {
+            var imagesDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "quiz_images");
+            
+            if (!Directory.Exists(imagesDir))
+            {
+                imagesDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            }
+
+            if (!Directory.Exists(imagesDir))
+            {
+                return new List<string>();
+            }
+
+            return Directory.GetFiles(imagesDir)
+                .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
+                .Select(Path.GetFileName)
+                .OrderBy(name => name)
+                .ToList();
+        }
+
+        private void UseLocalPaths(List<string> chosen, List<(string key, string img)> answersList)
+        {
             var imageBasePath = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "quiz_images")) 
                 ? "quiz_images" 
                 : "images";
 
-            ShuffledAnswers = new List<(string, string)>
+            QuestionImageUrl = $"/{imageBasePath}/{chosen[0]}";
+            AnswerImageUrls = new Dictionary<string, string>();
+            foreach (var answer in answersList)
             {
-                ("correct", $"{imageBasePath}/{correct}"),
-                ("a", $"{imageBasePath}/{wrong[0]}"),
-                ("b", $"{imageBasePath}/{wrong[1]}"),
-                ("c", $"{imageBasePath}/{wrong[2]}")
+                AnswerImageUrls[answer.key] = $"/{imageBasePath}/{answer.img}";
             }
-            .OrderBy(x => Guid.NewGuid())
-            .ToDictionary(x => x.Item1, x => x.Item2);
-            
-            // עדכון QuestionImage עם הנתיב הנכון
-            QuestionImage = $"{imageBasePath}/{QuestionImage}";
+        }
+
+        private async Task LoadAnswerUrlsAsync(string questionImg, Dictionary<string, string> answers)
+        {
+            if (_storage != null)
+            {
+                try
+                {
+                    var paths = new List<string> { questionImg };
+                    paths.AddRange(answers.Values.Where(v => !string.IsNullOrWhiteSpace(v)));
+                    var signedUrls = await _storage.GetSignedUrlsAsync(paths);
+                    
+                    QuestionImageUrl = signedUrls.TryGetValue(questionImg, out var qUrl) ? qUrl : string.Empty;
+                    AnswerImageUrls = new Dictionary<string, string>();
+                    foreach (var kv in answers)
+                    {
+                        if (signedUrls.TryGetValue(kv.Value, out var aUrl))
+                        {
+                            AnswerImageUrls[kv.Key] = aUrl;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error loading answer URLs: {ex.Message}");
+                    UseLocalPathsForAnswers(questionImg, answers);
+                }
+            }
+            else
+            {
+                UseLocalPathsForAnswers(questionImg, answers);
+            }
+        }
+
+        private void UseLocalPathsForAnswers(string questionImg, Dictionary<string, string> answers)
+        {
+            var imageBasePath = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "quiz_images")) 
+                ? "quiz_images" 
+                : "images";
+
+            QuestionImageUrl = $"/{imageBasePath}/{questionImg}";
+            AnswerImageUrls = new Dictionary<string, string>();
+            foreach (var kv in answers)
+            {
+                if (!string.IsNullOrWhiteSpace(kv.Value))
+                {
+                    AnswerImageUrls[kv.Key] = $"/{imageBasePath}/{kv.Value}";
+                }
+            }
         }
 
         public async Task<IActionResult> OnPostReportErrorAsync()

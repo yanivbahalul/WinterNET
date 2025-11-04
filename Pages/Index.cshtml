@@ -49,7 +49,7 @@
 
 <!-- תוכן ראשי -->
 <div class="quiz-container">
-    <img src="/@Model.QuestionImage" alt="שאלה" loading="lazy" />
+    <img src="@(string.IsNullOrEmpty(Model.QuestionImageUrl) ? "/" + Model.QuestionImage : Model.QuestionImageUrl)" alt="שאלה" loading="lazy" />
 
     <form method="post">
         @Html.AntiForgeryToken()
@@ -71,7 +71,7 @@
                         value="@answer.Key"
                         class="answer-btn @answerClass"
                         @(Model.AnswerChecked ? "disabled" : "")>
-                    <img src="/@answer.Value" alt="תשובה" loading="lazy" />
+                    <img src="@(Model.AnswerImageUrls != null && Model.AnswerImageUrls.ContainsKey(answer.Key) ? Model.AnswerImageUrls[answer.Key] : "/" + answer.Value)" alt="תשובה" loading="lazy" />
                 </button>
             }
         </div>

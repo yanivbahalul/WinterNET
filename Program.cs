@@ -18,6 +18,39 @@ builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor(); 
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<EmailService>();
+
+// Question Stats Service (local file-based)
+builder.Services.AddSingleton<QuestionStatsService>(sp =>
+{
+    var statsPath = Path.Combine(Directory.GetCurrentDirectory(), "data", "question_stats.json");
+    return new QuestionStatsService(statsPath);
+});
+
+// Test Session Service (Supabase)
+builder.Services.AddScoped<TestSessionService>();
+
+// Question Difficulty Service (Supabase)
+builder.Services.AddScoped<QuestionDifficultyService>();
+
+// Supabase Storage Service (optional - if using Supabase for images)
+builder.Services.AddSingleton<SupabaseStorageService>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var url = config["SUPABASE_URL"];
+    var key = config["SUPABASE_KEY"];
+    var bucket = config["SUPABASE_BUCKET"] ?? "winternet_question";
+    
+    // Only create if config is available
+    if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(key))
+    {
+        Console.WriteLine("⚠️ Supabase Storage not configured - will use local files");
+        return null;
+    }
+    
+    Console.WriteLine($"✅ Supabase Storage configured: bucket='{bucket}'");
+    return new SupabaseStorageService(url, key, bucket, 3600);
+});
+
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = ".WinterNET.Session";
@@ -126,6 +159,62 @@ app.MapGet("/api/online-count", async context =>
     catch (Exception ex)
     {
         Console.WriteLine($"[Online Count API Error] {ex}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Server error: {ex.Message}");
+    }
+});
+
+app.MapGet("/api/dashboard-data", async context =>
+{
+    try
+    {
+        var authService = context.RequestServices.GetService<AuthService>();
+        if (authService == null)
+        {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsync("AuthService not available");
+            return;
+        }
+
+        var allUsers = await authService.GetAllUsers();
+        var onlineUsers = allUsers.Where(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5)).ToList();
+        var cheaters = allUsers.Where(u => u.IsCheater).Count();
+        var banned = allUsers.Where(u => u.IsBanned).Count();
+        var topUsers = allUsers.OrderByDescending(u => u.CorrectAnswers).Take(10).ToList();
+        
+        var averageSuccessRate = allUsers.Where(u => u.TotalAnswered > 0)
+            .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
+            .DefaultIfEmpty(0).Average() * 100;
+
+        var data = new
+        {
+            allUsersCount = allUsers.Count,
+            onlineUsersCount = onlineUsers.Count,
+            cheatersCount = cheaters,
+            bannedUsersCount = banned,
+            averageSuccessRate = Math.Round(averageSuccessRate, 1),
+            onlineUsersList = onlineUsers.Select(u => new
+            {
+                username = u.Username ?? "",
+                totalAnswered = u.TotalAnswered,
+                correctAnswers = u.CorrectAnswers,
+                successRate = u.TotalAnswered > 0 ? Math.Round((double)u.CorrectAnswers / u.TotalAnswered * 100, 0) : 0
+            }).ToList(),
+            topUsersList = topUsers.Select(u => new
+            {
+                username = u.Username ?? "",
+                totalAnswered = u.TotalAnswered,
+                correctAnswers = u.CorrectAnswers,
+                successRate = u.TotalAnswered > 0 ? Math.Round((double)u.CorrectAnswers / u.TotalAnswered * 100, 0) : 0
+            }).ToList()
+        };
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(data));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Dashboard API Error] {ex}");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync($"Server error: {ex.Message}");
     }

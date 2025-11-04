@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/yaniv/Desktop/WinterNET/HelloWorldWeb.csproj": {}
+    "/Users/yaniv/Desktop/Winternet/HelloWorldWeb.csproj": {}
   },
   "projects": {
-    "/Users/yaniv/Desktop/WinterNET/HelloWorldWeb.csproj": {
+    "/Users/yaniv/Desktop/Winternet/HelloWorldWeb.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/yaniv/Desktop/WinterNET/HelloWorldWeb.csproj",
+        "projectUniqueName": "/Users/yaniv/Desktop/Winternet/HelloWorldWeb.csproj",
         "projectName": "HelloWorldWeb",
-        "projectPath": "/Users/yaniv/Desktop/WinterNET/HelloWorldWeb.csproj",
+        "projectPath": "/Users/yaniv/Desktop/Winternet/HelloWorldWeb.csproj",
         "packagesPath": "/Users/yaniv/.nuget/packages/",
-        "outputPath": "/Users/yaniv/Desktop/WinterNET/obj/",
+        "outputPath": "/Users/yaniv/Desktop/Winternet/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/yaniv/.nuget/NuGet/NuGet.Config"

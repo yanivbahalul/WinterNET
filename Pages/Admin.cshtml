@@ -139,6 +139,56 @@
         }
     </table>
 
-    <a href="/Index" class="back-to-quiz">⬅ חזרה לחידון</a>
+    <h2>🎯 מערכת דירוג קושי שאלות</h2>
+    <table>
+        <tr>
+            <th>ID שאלה</th>
+            <th>רמת קושי</th>
+            <th>נענתה</th>
+            <th>תשובות נכונות</th>
+            <th>אחוז הצלחה</th>
+            <th>עודכן ב</th>
+        </tr>
+        @if (Model.QuestionDifficulties != null && Model.QuestionDifficulties.Any())
+        {
+            @foreach (var q in Model.QuestionDifficulties.OrderByDescending(q => q.LastUpdated).Take(50))
+            {
+                var successRate = q.TotalAttempts > 0 ? (double)q.CorrectAttempts / q.TotalAttempts * 100 : 0;
+                var difficultyColor = q.Difficulty switch
+                {
+                    "easy" => "#4caf50",
+                    "medium" => "#ff9800",
+                    "hard" => "#f44336",
+                    _ => "#999"
+                };
+                var difficultyText = q.Difficulty switch
+                {
+                    "easy" => "קל",
+                    "medium" => "בינוני",
+                    "hard" => "קשה",
+                    _ => "לא ידוע"
+                };
+                <tr>
+                    <td><a href="/QuestionView?id=@q.QuestionFile" style="color: #1e90ff; text-decoration: none;" target="_blank">@q.QuestionFile</a></td>
+                    <td style="color: @difficultyColor; font-weight: bold;">@difficultyText</td>
+                    <td>@q.TotalAttempts</td>
+                    <td>@q.CorrectAttempts</td>
+                    <td>@successRate.ToString("0.0")%</td>
+                    <td style="font-size: 11px; color: #888;">@q.LastUpdated.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" style="text-align: center; color: #888;">אין נתונים עדיין</td></tr>
+        }
+    </table>
+
+    <div style="margin-top: 40px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <a href="/Index" class="back-to-quiz">⬅ חזרה לחידון</a>
+        <a href="/Test?start=1" class="back-to-quiz" style="background-color: #28a745;">🧪 מבחן חדש</a>
+        <a href="/MyExams" class="back-to-quiz" style="background-color: #6c757d;">📚 המבחנים שלי</a>
+        <a href="/StorageDebug" class="back-to-quiz" style="background-color: #ff6b6b;">🔍 Storage Debug</a>
+    </div>
 </body>
 </html>

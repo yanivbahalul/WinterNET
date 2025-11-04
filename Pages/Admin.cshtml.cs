@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using HelloWorldWeb.Models;
+using HelloWorldWeb.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,12 @@ namespace HelloWorldWeb.Pages
     public class AdminModel : PageModel
     {
         private readonly AuthService _authService;
+        private readonly QuestionDifficultyService _difficultyService;
 
-        public AdminModel(AuthService authService)
+        public AdminModel(AuthService authService, QuestionDifficultyService difficultyService = null)
         {
             _authService = authService;
+            _difficultyService = difficultyService;
         }
 
         public List<User> AllUsers { get; set; } = new();
@@ -23,6 +26,7 @@ namespace HelloWorldWeb.Pages
         public List<User> OnlineUsers { get; set; } = new();
         public List<User> TopUsers { get; set; } = new();
         public double AverageSuccessRate { get; set; }
+        public List<Services.QuestionDifficulty> QuestionDifficulties { get; set; } = new();
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -40,6 +44,11 @@ namespace HelloWorldWeb.Pages
             AverageSuccessRate = AllUsers.Where(u => u.TotalAnswered > 0)
                 .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
                 .DefaultIfEmpty(0).Average() * 100;
+
+            if (_difficultyService != null)
+            {
+                QuestionDifficulties = await _difficultyService.GetAllQuestions();
+            }
         }
     }
 }

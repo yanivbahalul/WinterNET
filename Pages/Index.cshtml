@@ -29,8 +29,10 @@
 </div>
 
 <!-- כפתור טבלת מובילים + ניהול -->
-<div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; flex-wrap: wrap;">
     <a href="/Leaderboard" class="next-question-btn">🏆 מובילים</a>
+    <a href="/Test?start=1" class="next-question-btn" style="background-color: #28a745;">🧪 מבחן</a>
+    <a href="/MyExams" class="next-question-btn" style="background-color: #6c757d;">📚 מבחנים</a>
     @if (Model.Username == "Admin")
     {
         <a href="/Admin" class="next-question-btn">🛠️ ניהול</a>

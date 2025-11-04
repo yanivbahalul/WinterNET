@@ -220,6 +220,72 @@ app.MapGet("/api/dashboard-data", async context =>
     }
 });
 
+// 📤 Upload images to Supabase Storage (Admin only)
+app.MapGet("/api/upload-images", async context =>
+{
+    try
+    {
+        var storage = context.RequestServices.GetService<SupabaseStorageService>();
+        if (storage == null)
+        {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsync("Storage service not available");
+            return;
+        }
+
+        var imagesDir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "quiz_images");
+        if (!System.IO.Directory.Exists(imagesDir))
+        {
+            context.Response.StatusCode = 404;
+            await context.Response.WriteAsync("Images directory not found");
+            return;
+        }
+
+        var imageFiles = System.IO.Directory.GetFiles(imagesDir)
+            .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
+            .OrderBy(f => f)
+            .ToList();
+
+        Console.WriteLine($"📤 Starting upload of {imageFiles.Count} images...");
+        int uploaded = 0;
+        int failed = 0;
+
+        foreach (var filePath in imageFiles)
+        {
+            var fileName = System.IO.Path.GetFileName(filePath);
+            try
+            {
+                using (var fileStream = System.IO.File.OpenRead(filePath))
+                {
+                    await storage.UploadAsync(fileStream, fileName, "image/png", overwrite: true);
+                    uploaded++;
+                    if (uploaded % 50 == 0)
+                    {
+                        Console.WriteLine($"✅ Uploaded {uploaded}/{imageFiles.Count}...");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                Console.WriteLine($"❌ Failed {fileName}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine($"✅ Upload complete: {uploaded} uploaded, {failed} failed");
+
+        var response = new { uploaded, failed, total = imageFiles.Count };
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Upload Images Error] {ex}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Error: {ex.Message}");
+    }
+});
+
 // ✅ הדפסת הפעלה
 app.Lifetime.ApplicationStarted.Register(() =>
 {

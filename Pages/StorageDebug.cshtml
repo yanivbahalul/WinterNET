@@ -1,0 +1,87 @@
+@page
+@model HelloWorldWeb.Pages.StorageDebugModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Storage Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        h1 { color: #0ff; }
+        .info { background: #222; padding: 10px; margin: 10px 0; border-left: 3px solid #0f0; }
+        .error { background: #400; padding: 10px; margin: 10px 0; border-left: 3px solid #f00; color: #f00; }
+        .files { max-height: 500px; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #0f0; }
+        .files div { padding: 2px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Supabase Storage Debug</h1>
+    
+    <div class="info">
+        <strong>Storage Service Available:</strong> @(Model.StorageAvailable ? "✅ Yes" : "❌ No")
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="error">
+            <strong>Error:</strong> @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.StorageAvailable && string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="info">
+            <strong>Total Files in Bucket:</strong> @Model.AllFiles.Count
+        </div>
+        
+        <div class="info">
+            <strong>Image Files (png/jpg/jpeg/webp):</strong> @Model.ImageFiles.Count
+        </div>
+
+        <h2>📂 All Files:</h2>
+        <div class="files">
+            @if (Model.AllFiles.Count == 0)
+            {
+                <div style="color: #f00;">No files found in bucket</div>
+            }
+            else
+            {
+                @foreach (var file in Model.AllFiles.Take(50))
+                {
+                    <div>@file</div>
+                }
+                @if (Model.AllFiles.Count > 50)
+                {
+                    <div style="color: #ff0; margin-top: 10px;">... and @(Model.AllFiles.Count - 50) more files</div>
+                }
+            }
+        </div>
+
+        <h2>🖼️ Image Files Only:</h2>
+        <div class="files">
+            @if (Model.ImageFiles.Count == 0)
+            {
+                <div style="color: #f00;">No image files found</div>
+            }
+            else
+            {
+                @foreach (var file in Model.ImageFiles.Take(50))
+                {
+                    <div>@file</div>
+                }
+                @if (Model.ImageFiles.Count > 50)
+                {
+                    <div style="color: #ff0; margin-top: 10px;">... and @(Model.ImageFiles.Count - 50) more images</div>
+                }
+            }
+        </div>
+    }
+
+    <div style="margin-top: 20px;">
+        <a href="/Index" style="color: #0ff;">← Back to Quiz</a>
+    </div>
+</body>
+</html>
+

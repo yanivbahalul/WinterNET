@@ -1,0 +1,132 @@
+@page
+@model HelloWorldWeb.Pages.TestReviewModel
+@{
+    ViewData["Title"] = "סקירת שאלה";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>WinterNET — Test Review</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+</head>
+<body>
+    <img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+    <div class="logo-header">
+        <a href="/Index" style="display:inline-block;">
+            <img src="/logo/logo.png" alt="WinterNET Logo" style="max-height: 120px;" />
+        </a>
+    </div>
+
+    <div class="quiz-container">
+        <h2 style="margin: 0 0 20px 0; color: var(--rojo); text-shadow: 0 0 10px var(--rojo);">סקירת שאלה @(int.Parse(Request.Query["i"]) + 1)</h2>
+
+        @if (!string.IsNullOrWhiteSpace(Model.QuestionImageUrl))
+        {
+            <img src="@Model.QuestionImageUrl" alt="שאלה" loading="lazy" id="main-question-image" 
+                 style="cursor: pointer; border: 2px solid var(--space-cadet); box-shadow: 0 0 20px rgba(193, 73, 83, 0.2);" 
+                 onclick="openImageModal()" />
+        }
+
+        <div class="answers">
+            @foreach (var kv in Model.AnswerImageUrls)
+            {
+                var key = kv.Key;
+                var url = kv.Value;
+                var cls = (key == "correct") ? "correct" : (Model.SelectedKey == key ? "incorrect" : "");
+                <button class="answer-btn @cls" disabled>
+                    <img src="@url" alt="תשובה" loading="lazy" />
+                </button>
+            }
+        </div>
+
+        <div class="button-row">
+            <form method="get" action="/TestResults">
+                @if (!string.IsNullOrEmpty(Request.Query["token"]))
+                {
+                    <input type="hidden" name="token" value="@Request.Query["token"]" />
+                }
+                <button class="next-question-btn">חזרה לסיכום</button>
+            </form>
+        </div>
+    </div>
+
+    @* Image Modal *@
+    <div id="image-modal" class="image-modal" style="display:none;">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content" id="modal-img" src="@Model.QuestionImageUrl" alt="שאלה מוגדלת" />
+    </div>
+
+    <style>
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 5000;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background-color: rgba(11, 0, 20, 0.95);
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s;
+    }
+    .image-modal[style*="display: flex"] {
+        display: flex !important;
+    }
+    .modal-content {
+        max-width: 90vw;
+        max-height: 80vh;
+        border-radius: 4px;
+        box-shadow: 0 0 30px rgba(193, 73, 83, 0.5);
+        background: rgba(11, 0, 20, 0.9);
+        padding: 8px;
+        object-fit: contain;
+        border: 2px solid var(--bittersweet-shimmer);
+    }
+    .close-modal {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        color: var(--rojo);
+        font-size: 48px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 5100;
+        text-shadow: 0 0 10px var(--rojo);
+        transition: color 0.2s;
+    }
+    .close-modal:hover {
+        color: var(--isabelline);
+        text-shadow: 0 0 20px var(--rojo);
+    }
+    </style>
+
+    <script>
+    function openImageModal() {
+        var modal = document.getElementById('image-modal');
+        var modalImg = document.getElementById('modal-img');
+        modalImg.src = '@Model.QuestionImageUrl';
+        modal.style.display = 'flex';
+    }
+    function closeImageModal() {
+        var modal = document.getElementById('image-modal');
+        modal.style.display = 'none';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('image-modal');
+        if (!modal) return;
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeImageModal();
+        });
+    });
+    </script>
+</body>
+</html>
+

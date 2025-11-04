@@ -1,0 +1,142 @@
+@page
+@model HelloWorldWeb.Pages.QuestionViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>WinterNET — צפייה בשאלה</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <a href="/Admin" class="back-to-quiz" style="position: fixed; top: 20px; left: 20px; z-index: 1000; padding: 10px 20px; background: rgba(11, 0, 20, 0.8); color: var(--isabelline); text-decoration: none; border: 2px solid var(--isabelline); border-radius: 4px; font-family: 'Courier New', monospace; transition: all 0.3s;">⬅ חזרה לניהול</a>
+    <img src="/assets/background.gif" class="background-gif" alt="רקע" />
+
+    <div class="logo-header">
+        <a href="/Index" style="display:inline-block;">
+            <img src="/logo/logo.png" alt="WinterNET Logo" style="max-height: 120px;" />
+        </a>
+    </div>
+
+    <div class="quiz-container">
+        <h2 style="color: var(--rojo); text-shadow: 0 0 10px var(--rojo); margin-bottom: 20px;">תצוגת שאלה</h2>
+
+        @if (!string.IsNullOrWhiteSpace(Model.QuestionImageUrl))
+        {
+            <img src="@Model.QuestionImageUrl" alt="שאלה" loading="lazy" id="main-question-image" 
+                 style="cursor: pointer; border: 2px solid var(--space-cadet); box-shadow: 0 0 20px rgba(193, 73, 83, 0.2);" 
+                 onclick="openImageModal()" />
+        }
+
+        <div class="answers">
+            @foreach (var kv in Model.AnswerImageUrls)
+            {
+                var answerClass = "";
+                if (Model.ShowAnswerResults)
+                {
+                    if (kv.Key == Model.CorrectAnswerKey)
+                    {
+                        answerClass = "correct";
+                    }
+                    else if (kv.Key == Model.SelectedAnswerKey)
+                    {
+                        answerClass = "incorrect";
+                    }
+                }
+
+                <button class="answer-btn @answerClass" disabled style="display: flex; justify-content: center; align-items: center;">
+                    <img src="@kv.Value" alt="תשובה" loading="lazy" style="margin: 0 auto;" />
+                </button>
+            }
+        </div>
+        
+        @if (Model.ShowAnswerResults)
+        {
+            var isCorrect = Model.SelectedAnswerKey == Model.CorrectAnswerKey;
+            <p style="margin-top:15px; font-size:18px; color:@(isCorrect ? "#00ff00" : "var(--rojo)"); font-weight: bold; text-align: center; text-shadow: 0 0 10px @(isCorrect ? "#00ff00" : "var(--rojo)");">
+                @(isCorrect ? "✓ תשובה נכונה!" : "✗ תשובה שגויה")
+            </p>
+        }
+    </div>
+
+    @* Image Modal *@
+    <div id="image-modal" class="image-modal" style="display:none;">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content" id="modal-img" src="@Model.QuestionImageUrl" alt="שאלה מוגדלת" />
+    </div>
+
+    <style>
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 5000;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background-color: rgba(11, 0, 20, 0.95);
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s;
+    }
+    .image-modal[style*="display: flex"] {
+        display: flex !important;
+    }
+    .modal-content {
+        max-width: 90vw;
+        max-height: 80vh;
+        border-radius: 4px;
+        box-shadow: 0 0 30px rgba(193, 73, 83, 0.5);
+        background: rgba(11, 0, 20, 0.9);
+        padding: 8px;
+        object-fit: contain;
+        border: 2px solid var(--bittersweet-shimmer);
+    }
+    .close-modal {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        color: var(--rojo);
+        font-size: 48px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 5100;
+        text-shadow: 0 0 10px var(--rojo);
+        transition: color 0.2s;
+    }
+    .close-modal:hover {
+        color: var(--isabelline);
+        text-shadow: 0 0 20px var(--rojo);
+    }
+    .back-to-quiz:hover {
+        border-color: var(--bittersweet-shimmer);
+        box-shadow: 0 0 20px var(--bittersweet-shimmer);
+    }
+    </style>
+
+    <script>
+    function openImageModal() {
+        var modal = document.getElementById('image-modal');
+        var modalImg = document.getElementById('modal-img');
+        modalImg.src = '@Model.QuestionImageUrl';
+        modal.style.display = 'flex';
+    }
+    function closeImageModal() {
+        var modal = document.getElementById('image-modal');
+        modal.style.display = 'none';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('image-modal');
+        if (!modal) return;
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeImageModal();
+        });
+    });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,227 @@
+@page
+@model HelloWorldWeb.Pages.MyExamsModel
+@{
+    ViewData["Title"] = "המבחנים שלי";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>WinterNET — המבחנים שלי</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <style>
+        .exams-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(11, 0, 20, 0.85);
+            border: 2px solid var(--bittersweet-shimmer);
+            box-shadow: 0 0 30px rgba(193, 73, 83, 0.3);
+            border-radius: 4px;
+            direction: rtl;
+        }
+        
+        .exam-card {
+            background: rgba(11, 0, 20, 0.6);
+            border: 2px solid var(--space-cadet);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .exam-card:hover {
+            border-color: var(--bittersweet-shimmer);
+            box-shadow: 0 0 20px rgba(193, 73, 83, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .exam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .exam-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        
+        .status-completed {
+            background: rgba(42, 46, 69, 0.5);
+            color: var(--isabelline);
+            border: 2px solid var(--isabelline);
+        }
+        
+        .status-expired {
+            background: rgba(223, 45, 47, 0.2);
+            color: var(--rojo);
+            border: 2px solid var(--rojo);
+            text-shadow: 0 0 10px var(--rojo);
+        }
+        
+        .exam-details {
+            color: var(--isabelline);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .exam-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .no-exams {
+            text-align: center;
+            padding: 40px;
+            color: var(--isabelline);
+        }
+        
+        .token-display {
+            font-family: 'Courier New', monospace;
+            background: rgba(11, 0, 20, 0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--bittersweet-shimmer);
+            margin-top: 5px;
+            display: inline-block;
+            border: 1px solid var(--space-cadet);
+        }
+    </style>
+</head>
+<body>
+    <img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+    <div class="logo-header">
+        <a href="/Index" style="display:inline-block;">
+            <img src="/logo/logo.png" alt="WinterNET Logo" style="max-height: 120px;" />
+        </a>
+    </div>
+
+    <div class="exams-container">
+        <h1 style="text-align: center; margin-bottom: 30px; color: var(--rojo); text-shadow: 0 0 10px var(--rojo);">המבחנים שלי</h1>
+        
+        @if (TempData["TestEndedMessage"] != null)
+        {
+            <div style="background: rgba(0, 255, 0, 0.1); border: 2px solid #00ff00; border-radius: 4px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                <strong style="color: #00ff00; text-shadow: 0 0 10px #00ff00;">✅ @TempData["TestEndedMessage"]</strong>
+            </div>
+        }
+        
+        @if (Model.Sessions == null || !Model.Sessions.Any())
+        {
+            <div class="no-exams">
+                <h3 style="color: var(--rojo); text-shadow: 0 0 10px var(--rojo);">עדיין לא ביצעת מבחנים</h3>
+                <p>כשתתחיל מבחן, הוא יופיע כאן</p>
+                <a href="/Index" class="next-question-btn" style="margin-top: 20px;">התחל לתרגל</a>
+            </div>
+        }
+        else
+        {
+            @foreach (var session in Model.Sessions)
+            {
+                var statusClass = session.Status switch
+                {
+                    "active" => "status-active",
+                    "completed" => "status-completed",
+                    "expired" => "status-expired",
+                    _ => ""
+                };
+                
+                var statusText = session.Status switch
+                {
+                    "active" => "פעיל",
+                    "completed" => "הושלם",
+                    "expired" => "פג תוקף",
+                    _ => session.Status
+                };
+                
+                <div class="exam-card">
+                    <div class="exam-header">
+                        <span class="exam-status @statusClass">@statusText</span>
+                        <span style="color: var(--isabelline); font-family: 'Courier New', monospace;">@session.StartedUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    
+                    <div class="exam-details">
+                        @if (session.Status == "completed" || session.Status == "expired")
+                        {
+                            <div>ציון: <strong style="color: var(--rojo);">@session.Score מתוך @session.MaxScore</strong></div>
+                            @if (session.MaxScore > 0)
+                            {
+                                var percentage = Math.Round((double)session.Score / session.MaxScore * 100, 1);
+                                <div>אחוז הצלחה: <strong style="color: var(--rojo);">@percentage%</strong></div>
+                            }
+                        }
+                        else if (session.Status == "active")
+                        {
+                            <div>שאלה נוכחית: <strong style="color: var(--rojo);">@(session.CurrentIndex + 1) מתוך @Model.GetQuestionCount(session)</strong></div>
+                            @if (Model.GetRemainingTime(session) != null)
+                            {
+                                <div>זמן נותר: <strong style="color: var(--rojo);">@Model.GetRemainingTime(session)</strong></div>
+                            }
+                        }
+                        
+                        @if (session.CompletedUtc.HasValue)
+                        {
+                            var duration = session.CompletedUtc.Value - session.StartedUtc;
+                            <div>משך זמן: <strong style="color: var(--rojo);">@string.Format("{0:D2}:{1:D2}:{2:D2}", (int)duration.TotalHours, duration.Minutes, duration.Seconds)</strong></div>
+                        }
+                        
+                        <div class="token-display" title="מזהה ייחודי של המבחן">
+                            Token: @session.Token.Substring(0, Math.Min(16, session.Token.Length))...
+                        </div>
+                    </div>
+                    
+                    <div class="exam-actions">
+                        @if (session.Status == "active")
+                        {
+                            <a href="/Test?token=@session.Token" class="next-question-btn">המשך מבחן</a>
+                            <form method="post" style="margin: 0; display: inline-block;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="token" value="@session.Token" />
+                                <button type="submit" class="next-question-btn" style="background: var(--rojo); border-color: var(--rojo);"
+                                        onclick="return confirm('האם אתה בטוח שברצונך לסיים את המבחן? התוצאות יישמרו.');">
+                                    סיים מבחן
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="/TestResults?token=@session.Token" class="next-question-btn" style="background: var(--space-cadet);">צפה בתוצאות</a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        
+        <div style="text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <a href="/Index" class="next-question-btn">חזרה לדף הבית</a>
+            @if (Model.ActiveSession == null)
+            {
+                <a href="/Test?start=1" class="next-question-btn">התחל מבחן חדש</a>
+            }
+        </div>
+    </div>
+</body>
+</html>
+

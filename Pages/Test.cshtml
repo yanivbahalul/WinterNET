@@ -1,0 +1,186 @@
+@page
+@model HelloWorldWeb.Pages.TestModel
+@{
+    ViewData["Title"] = "מצב מבחן";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>WinterNET — Test Mode</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+</head>
+<body>
+    <img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+    <div class="logo-header">
+        <a href="/Index" style="display:inline-block;">
+            <img src="/logo/logo.png" alt="WinterNET Logo" style="max-height: 120px;" />
+        </a>
+    </div>
+
+    <div class="quiz-container" style="position: relative;">
+        @* End Test Button *@
+        @if (ViewData["Token"] != null)
+        {
+            <form method="post" action="/Test?handler=EndTest" style="position: absolute; top: 10px; left: 10px; margin: 0;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="token" value="@ViewData["Token"]" />
+                <button type="submit" onclick="return confirm('האם אתה בטוח שברצונך לסיים את המבחן? התוצאות יישמרו.');" 
+                        style="padding: 8px 16px; font-size: 14px; background: var(--rojo); color: var(--isabelline); border: 2px solid var(--rojo); border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-family: 'Courier New', monospace; text-transform: uppercase;">
+                    סיים מבחן
+                </button>
+            </form>
+        }
+
+        <h2 style="margin: 0 0 10px 0; color: var(--rojo); text-shadow: 0 0 10px var(--rojo);">מצב מבחן</h2>
+        
+        @if (TempData["ActiveTestAlert"] != null)
+        {
+            <div style="background: rgba(255, 193, 7, 0.2); border: 2px solid var(--rojo); border-radius: 4px; padding: 15px; margin-bottom: 15px; text-align: center; animation: shake 0.5s;">
+                <strong style="color: var(--rojo);">⚠️ @TempData["ActiveTestAlert"]</strong>
+            </div>
+        }
+        
+        <p style="margin: 0 0 10px 0; font-size: 14px; color: var(--isabelline);">
+            שאלה @Model.DisplayQuestionNumber מתוך 17 · זמן נותר: <span id="countdown" style="color: var(--rojo); font-weight: bold;">--:--:--</span>
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.QuestionImageUrl))
+        {
+            <img src="@Model.QuestionImageUrl" alt="שאלה" loading="lazy" id="main-question-image" 
+                 style="cursor: pointer; border: 2px solid var(--space-cadet); box-shadow: 0 0 20px rgba(193, 73, 83, 0.2);" 
+                 onclick="openImageModal()" />
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="questionIndex" value="@Model.CurrentIndex" />
+            @if (ViewData["Token"] != null)
+            {
+                <input type="hidden" name="token" value="@ViewData["Token"]" />
+            }
+
+            <div class="answers">
+                @foreach (var answer in Model.ShuffledAnswers ?? new Dictionary<string, string>())
+                {
+                    <button type="submit"
+                            name="answer"
+                            value="@answer.Key"
+                            class="answer-btn">
+                        <img src="@(Model.AnswerImageUrls != null && Model.AnswerImageUrls.ContainsKey(answer.Key) ? Model.AnswerImageUrls[answer.Key] : "")" alt="תשובה" loading="lazy" />
+                    </button>
+                }
+            </div>
+        </form>
+    </div>
+
+    @* Image Modal *@
+    <div id="image-modal" class="image-modal" style="display:none;">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content" id="modal-img" src="@Model.QuestionImageUrl" alt="שאלה מוגדלת" />
+    </div>
+
+    <style>
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 5000;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        background-color: rgba(11, 0, 20, 0.95);
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s;
+    }
+    .image-modal[style*="display: flex"] {
+        display: flex !important;
+    }
+    .modal-content {
+        max-width: 90vw;
+        max-height: 80vh;
+        border-radius: 4px;
+        box-shadow: 0 0 30px rgba(193, 73, 83, 0.5);
+        background: rgba(11, 0, 20, 0.9);
+        padding: 8px;
+        object-fit: contain;
+        border: 2px solid var(--bittersweet-shimmer);
+    }
+    .close-modal {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        color: var(--rojo);
+        font-size: 48px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 5100;
+        text-shadow: 0 0 10px var(--rojo);
+        transition: color 0.2s;
+    }
+    .close-modal:hover {
+        color: var(--isabelline);
+        text-shadow: 0 0 20px var(--rojo);
+    }
+    </style>
+
+    <script>
+    function openImageModal() {
+        var modal = document.getElementById('image-modal');
+        var modalImg = document.getElementById('modal-img');
+        modalImg.src = '@Model.QuestionImageUrl';
+        modal.style.display = 'flex';
+    }
+    function closeImageModal() {
+        var modal = document.getElementById('image-modal');
+        modal.style.display = 'none';
+    }
+
+    // Client-side countdown (for UX only; server enforces)
+    (function() {
+        var endUtc = '@Model.TestEndUtcString';
+        if (!endUtc) return;
+        var end = new Date(endUtc).getTime();
+        function tick() {
+            var now = new Date().getTime();
+            var diff = Math.max(0, end - now);
+            var h = Math.floor(diff / 3600000);
+            var m = Math.floor((diff % 3600000) / 60000);
+            var s = Math.floor((diff % 60000) / 1000);
+            var pad = n => (n < 10 ? '0' + n : '' + n);
+            var el = document.getElementById('countdown');
+            if (el) el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+            if (diff <= 0) {
+                window.location.reload();
+                return;
+            }
+            setTimeout(tick, 1000);
+        }
+        tick();
+    })();
+
+    // Close image modal when clicking outside
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('image-modal');
+        if (!modal) return;
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeImageModal();
+        });
+    });
+    </script>
+</body>
+</html>
+

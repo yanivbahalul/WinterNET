@@ -1,0 +1,96 @@
+@page
+@model HelloWorldWeb.Pages.TestResultsModel
+@{
+    ViewData["Title"] = "סיכום מבחן";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>WinterNET — Test Summary</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+</head>
+<body>
+    <img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+    <div class="logo-header">
+        <a href="/Index" style="display:inline-block;">
+            <img src="/logo/logo.png" alt="WinterNET Logo" style="max-height: 120px;" />
+        </a>
+    </div>
+
+    <div class="quiz-container">
+        <h2 style="margin-top: 0; color: var(--rojo); text-shadow: 0 0 10px var(--rojo);">סיכום מבחן</h2>
+        <p style="margin: 6px 0 16px 0; color: var(--isabelline);">
+            ניקוד: <strong style="color: var(--rojo);">@Model.Score</strong> מתוך @Model.MaxScore
+            · נכונות: <strong style="color: var(--rojo);">@Model.CorrectCount</strong> / @Model.Total
+            · זמן: <strong style="color: var(--rojo);">@Model.ElapsedText</strong>
+        </p>
+
+        <div style="width: 100%;">
+            @for (int i = 0; i < Model.Items.Count; i++)
+            {
+                var item = Model.Items[i];
+                <div style="display:flex; gap:16px; align-items:flex-start; margin-bottom: 16px; background: rgba(11, 0, 20, 0.6); padding: 12px; border-radius: 4px; position: relative; border: 2px solid var(--space-cadet);">
+                    @if (!string.IsNullOrEmpty(Request.Query["token"]))
+                    {
+                        <a href="/TestReview?i=@i&token=@Request.Query["token"]" title="הצג סקירה"
+                           style="position:absolute; top:8px; right:8px; text-decoration:none; background:var(--space-cadet); color:var(--isabelline); width:32px; height:32px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(193, 73, 83, 0.3); border: 2px solid var(--bittersweet-shimmer); transition: all 0.3s;">
+                            🔍
+                        </a>
+                    }
+                    <img src="@item.QuestionUrl" alt="שאלה @(i+1)" style="max-width: 220px; max-height: 140px; border-radius: 4px; object-fit: contain; background: rgba(11, 0, 20, 0.8); border: 2px solid var(--space-cadet);" />
+                    <div style="flex:1;">
+                        <div style="margin-bottom: 6px; font-weight: bold; color: @(item.IsCorrect ? "#00ff00" : "var(--rojo)"); text-shadow: 0 0 10px @(item.IsCorrect ? "#00ff00" : "var(--rojo)");">
+                            שאלה @(i+1) — @(item.IsCorrect ? "✓ נכון" : "✗ לא נכון")
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            @if (!string.IsNullOrWhiteSpace(item.SelectedUrl))
+                            {
+                                <div>
+                                    <div style="font-size: 12px; color: var(--isabelline); margin-bottom: 4px;">התשובה שנענתה</div>
+                                    <img src="@item.SelectedUrl" alt="נענתה" class="result-ans" style="border: 2px solid var(--space-cadet);" />
+                                </div>
+                            }
+                            <div>
+                                <div style="font-size: 12px; color: var(--isabelline); margin-bottom: 4px;">התשובה הנכונה</div>
+                                <img src="@item.CorrectUrl" alt="נכונה" class="result-ans" style="border: 2px solid var(--space-cadet);" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="button-row">
+            <form method="get" action="/Index">
+                <button class="next-question-btn">חזרה לחידון</button>
+            </form>
+            @if (!string.IsNullOrEmpty(Request.Query["token"]))
+            {
+                <form method="get" action="/MyExams">
+                    <button class="next-question-btn" style="background: var(--space-cadet);">המבחנים שלי</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <style>
+    .result-ans {
+        width: 160px;
+        height: 120px;
+        border-radius: 4px;
+        object-fit: contain;
+        background: rgba(11, 0, 20, 0.8);
+        display: block;
+        overflow: hidden;
+        filter: grayscale(100%) brightness(90%) contrast(200%) saturate(0%);
+    }
+    </style>
+</body>
+</html>
+

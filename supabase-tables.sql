@@ -103,9 +103,14 @@ CREATE TRIGGER trigger_update_question_difficulties_timestamp
 ALTER TABLE test_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE question_difficulties ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (to avoid duplicates on re-run)
+DROP POLICY IF EXISTS "Service role full access to test_sessions" ON test_sessions;
+DROP POLICY IF EXISTS "Service role full access to question_difficulties" ON question_difficulties;
+DROP POLICY IF EXISTS "Public read access to question_difficulties" ON question_difficulties;
+
 -- RLS Policies for test_sessions
 -- Allow service_role full access
-CREATE POLICY IF NOT EXISTS "Service role full access to test_sessions"
+CREATE POLICY "Service role full access to test_sessions"
 ON test_sessions
 FOR ALL
 TO service_role
@@ -114,7 +119,7 @@ WITH CHECK (true);
 
 -- RLS Policies for question_difficulties
 -- Allow service_role full access
-CREATE POLICY IF NOT EXISTS "Service role full access to question_difficulties"
+CREATE POLICY "Service role full access to question_difficulties"
 ON question_difficulties
 FOR ALL
 TO service_role
@@ -122,7 +127,7 @@ USING (true)
 WITH CHECK (true);
 
 -- Optional: Allow public read access to question difficulties
-CREATE POLICY IF NOT EXISTS "Public read access to question_difficulties"
+CREATE POLICY "Public read access to question_difficulties"
 ON question_difficulties
 FOR SELECT
 TO anon, authenticated

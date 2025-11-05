@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace HelloWorldWeb.Services
         private List<string> _listCache;
         private DateTime _listCacheAt;
         private readonly TimeSpan _listTtl = TimeSpan.FromMinutes(5);
-        private readonly Dictionary<string, (string url, DateTime cachedAt)> _signedUrlCache = new();
+        private readonly ConcurrentDictionary<string, (string url, DateTime cachedAt)> _signedUrlCache = new();
         private readonly TimeSpan _signedUrlTtl;
         private readonly string _supabaseUrl;
         private readonly string _serviceRoleKey;
@@ -73,7 +74,7 @@ namespace HelloWorldWeb.Services
             await EnsureInitAsync();
             var from = _client.Storage.From(_bucket);
 
-            var dict = new Dictionary<string, string>();
+            var dict = new ConcurrentDictionary<string, string>();
             var tasks = new List<Task>();
             foreach (var p in objectPaths)
             {
@@ -89,14 +90,11 @@ namespace HelloWorldWeb.Services
                 {
                     var url = await from.CreateSignedUrl(p, _ttlSeconds);
                     _signedUrlCache[p] = (url, DateTime.UtcNow);
-                    lock (dict)
-                    {
-                        dict[p] = url;
-                    }
+                    dict[p] = url;
                 }));
             }
             await Task.WhenAll(tasks);
-            return dict;
+            return new Dictionary<string, string>(dict);
         }
 
         public async Task UploadAsync(Stream fileStream, string objectPath, string contentType = "application/octet-stream", bool overwrite = false)

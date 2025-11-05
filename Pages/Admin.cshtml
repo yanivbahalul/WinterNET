@@ -1,5 +1,6 @@
 @page
 @model HelloWorldWeb.Pages.AdminModel
+@using System.Linq
 @{
     Layout = null;
 }
@@ -77,6 +78,49 @@
         <li>🔒 חסומים: <strong>@Model.BannedUsers.Count</strong></li>
         <li>📈 ממוצע הצלחה: <strong>@Model.AverageSuccessRate.ToString("0.0")%</strong></li>
     </ul>
+
+    <h2>🎯 סטטיסטיקת שאלות לפי רמת קושי</h2>
+    @if (Model.QuestionDifficulties != null && Model.QuestionDifficulties.Any())
+    {
+        var easyQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "easy").ToList();
+        var mediumQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "medium").ToList();
+        var hardQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "hard").ToList();
+        
+        <table style="margin-bottom: 20px;">
+            <tr>
+                <th>רמת קושי</th>
+                <th>מספר שאלות</th>
+                <th>ממוצע הצלחה</th>
+                <th>סה"כ נענו</th>
+            </tr>
+            <tr style="background-color: rgba(40, 164, 40, 0.2);">
+                <td style="color: #28a428; font-weight: bold;">🟢 קל (Easy)</td>
+                <td>@easyQuestions.Count</td>
+                <td>@(easyQuestions.Any() ? easyQuestions.Average(q => q.SuccessRate).ToString("0.0") : "0")%</td>
+                <td>@easyQuestions.Sum(q => q.TotalAttempts)</td>
+            </tr>
+            <tr style="background-color: rgba(255, 193, 7, 0.2);">
+                <td style="color: #ffc107; font-weight: bold;">🟡 בינוני (Medium)</td>
+                <td>@mediumQuestions.Count</td>
+                <td>@(mediumQuestions.Any() ? mediumQuestions.Average(q => q.SuccessRate).ToString("0.0") : "0")%</td>
+                <td>@mediumQuestions.Sum(q => q.TotalAttempts)</td>
+            </tr>
+            <tr style="background-color: rgba(244, 67, 54, 0.2);">
+                <td style="color: #f44336; font-weight: bold;">🔴 קשה (Hard)</td>
+                <td>@hardQuestions.Count</td>
+                <td>@(hardQuestions.Any() ? hardQuestions.Average(q => q.SuccessRate).ToString("0.0") : "0")%</td>
+                <td>@hardQuestions.Sum(q => q.TotalAttempts)</td>
+            </tr>
+        </table>
+        
+        <p style="font-size: 12px; color: #888; margin-top: 10px;">
+            💡 רמת קושי מתעדכנת אוטומטית אחרי 10 ניסיונות: קל ≥65%, בינוני 35-65%, קשה <35%
+        </p>
+    }
+    else
+    {
+        <p style="color: #888; font-style: italic;">אין עדיין נתוני שאלות במערכת</p>
+    }
 
     <h2>📶 משתמשים מחוברים כרגע</h2>
     <table>

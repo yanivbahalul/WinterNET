@@ -14,7 +14,7 @@ namespace HelloWorldWeb.Services
     public class QuestionDifficulty
     {
         public string QuestionFile { get; set; } = string.Empty;
-        public string Difficulty { get; set; } = "unrated";
+        public string Difficulty { get; set; } = "medium";
         public decimal SuccessRate { get; set; } = 0;
         public int TotalAttempts { get; set; } = 0;
         public int CorrectAttempts { get; set; } = 0;
@@ -126,14 +126,14 @@ namespace HelloWorldWeb.Services
                 
                 if (existing == null)
                 {
-                    // Create new record with NO difficulty rating until enough attempts
+                    // Create new record and set difficulty immediately based on first attempt
                     var newRecord = new QuestionDifficulty
                     {
                         QuestionFile = questionFile,
                         TotalAttempts = 1,
                         CorrectAttempts = isCorrect ? 1 : 0,
                         SuccessRate = isCorrect ? 100 : 0,
-                        Difficulty = "unrated", // Start as unrated
+                        Difficulty = isCorrect ? "easy" : "hard", // Immediate rating based on first attempt
                         ManualOverride = false,
                         CreatedAt = DateTime.UtcNow,
                         LastUpdated = DateTime.UtcNow
@@ -151,8 +151,8 @@ namespace HelloWorldWeb.Services
                         ? Math.Round((decimal)existing.CorrectAttempts / existing.TotalAttempts * 100, 2)
                         : 0;
                     
-                    // Auto-update difficulty ONLY after 5+ attempts (and if not manually overridden)
-                    if (!existing.ManualOverride && existing.TotalAttempts >= 5)
+                    // Auto-update difficulty immediately after every attempt (if not manually overridden)
+                    if (!existing.ManualOverride)
                     {
                         var oldDifficulty = existing.Difficulty;
                         existing.Difficulty = existing.SuccessRate switch
@@ -166,11 +166,6 @@ namespace HelloWorldWeb.Services
                         {
                             Console.WriteLine($"[QuestionDifficultyService] 📊 Auto-updated '{questionFile}' from '{oldDifficulty}' to '{existing.Difficulty}' (attempts: {existing.TotalAttempts}, success rate: {existing.SuccessRate}%)");
                         }
-                    }
-                    else if (!existing.ManualOverride && existing.TotalAttempts < 5)
-                    {
-                        // Keep as unrated until we have enough data
-                        existing.Difficulty = "unrated";
                     }
                     
                     return await UpdateQuestionDifficulty(existing);

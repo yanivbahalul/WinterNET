@@ -300,7 +300,7 @@ function filterByDifficulty(difficulty) {
     } else {
         currentFilter = difficulty;
         
-        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : difficulty === 'hard' ? 'קשות' : 'לא מדורגות';
+        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : 'קשות';
         titleEl.textContent = `שאלות ${diffText}`;
         
         // Highlight active card
@@ -401,7 +401,6 @@ function filterByDifficulty(difficulty) {
                             "easy" => "#4caf50",
                             "medium" => "#ffa726",
                             "hard" => "#ef5350",
-                            "unrated" => "#666",
                             _ => "#999"
                         };
                         var diffText = q.Difficulty switch
@@ -409,7 +408,6 @@ function filterByDifficulty(difficulty) {
                             "easy" => "קל 🟢",
                             "medium" => "בינוני 🟡",
                             "hard" => "קשה 🔴",
-                            "unrated" => "לא מדורג ⚪",
                             _ => q.Difficulty
                         };
                         
@@ -428,8 +426,7 @@ function filterByDifficulty(difficulty) {
                                 </span>
                             </td>
                             <td>
-                                <span style="background: @diffColor; padding: 5px 12px; border-radius: 15px; font-weight: bold; color: white;" 
-                                      title="@(q.TotalAttempts < 5 ? "דרושים 5 ניסיונות לפחות לדירוג" : "")">
+                                <span style="background: @diffColor; padding: 5px 12px; border-radius: 15px; font-weight: bold; color: white;">
                                     @diffText
                                 </span>
                             </td>

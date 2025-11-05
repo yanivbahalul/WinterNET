@@ -61,9 +61,8 @@ namespace HelloWorldWeb.Pages
                     EasyCount = DifficultyQuestions.Count(q => q.Difficulty == "easy");
                     MediumCount = DifficultyQuestions.Count(q => q.Difficulty == "medium");
                     HardCount = DifficultyQuestions.Count(q => q.Difficulty == "hard");
-                    var unratedCount = DifficultyQuestions.Count(q => q.Difficulty == "unrated");
                     
-                    Console.WriteLine($"[Admin] Loaded {DifficultyQuestions.Count} questions: {EasyCount} easy, {MediumCount} medium, {HardCount} hard, {unratedCount} unrated");
+                    Console.WriteLine($"[Admin] Loaded {DifficultyQuestions.Count} questions: {EasyCount} easy, {MediumCount} medium, {HardCount} hard");
                 }
             }
             catch (Exception ex)

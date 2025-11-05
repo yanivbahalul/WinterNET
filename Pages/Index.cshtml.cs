@@ -19,12 +19,14 @@ namespace HelloWorldWeb.Pages
         private readonly AuthService _authService;
         private readonly EmailService _emailService;
         private readonly SupabaseStorageService _storage;
+        private readonly QuestionDifficultyService _difficultyService;
 
-        public IndexModel(AuthService authService, EmailService emailService, SupabaseStorageService storage = null)
+        public IndexModel(AuthService authService, EmailService emailService, SupabaseStorageService storage = null, QuestionDifficultyService difficultyService = null)
         {
             _authService = authService;
             _emailService = emailService;
             _storage = storage;
+            _difficultyService = difficultyService;
         }
 
         public bool AnswerChecked { get; set; }
@@ -151,6 +153,20 @@ namespace HelloWorldWeb.Pages
             }
 
             await _authService.UpdateUser(user);
+            
+            // 🎯 Update question difficulty statistics
+            if (_difficultyService != null && !string.IsNullOrEmpty(questionImage))
+            {
+                try
+                {
+                    await _difficultyService.UpdateQuestionStats(questionImage, IsCorrect);
+                    Console.WriteLine($"[Index] 📊 Updated difficulty for '{questionImage}': {(IsCorrect ? "Correct" : "Wrong")}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Index] ⚠️ Error updating difficulty: {ex.Message}");
+                }
+            }
 
             var sessionStartStr = HttpContext.Session.GetString("SessionStart");
             DateTime.TryParse(sessionStartStr, out var sessionStart);

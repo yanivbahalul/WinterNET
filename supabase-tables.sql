@@ -128,3 +128,22 @@ FOR SELECT
 TO anon, authenticated
 USING (true);
 
+-- View: Summary of questions by difficulty level
+-- This view provides aggregated statistics for each difficulty level
+CREATE OR REPLACE VIEW vw_questions_by_difficulty AS
+SELECT 
+    Difficulty,
+    COUNT(*) AS QuestionCount,
+    ROUND(AVG(SuccessRate), 2) AS AverageSuccessRate,
+    SUM(TotalAttempts) AS TotalAttempts,
+    SUM(CorrectAttempts) AS CorrectAttempts
+FROM question_difficulties
+GROUP BY Difficulty
+ORDER BY 
+    CASE Difficulty
+        WHEN 'easy' THEN 1
+        WHEN 'medium' THEN 2
+        WHEN 'hard' THEN 3
+        ELSE 4
+    END;
+

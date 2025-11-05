@@ -271,8 +271,8 @@ app.MapGet("/api/init-question-difficulties", async context =>
                 continue;
             }
             
-            // Create with default values
-            bool success = await difficultyService.UpdateQuestionStats(imageName, isCorrect: false);
+            // Create with 0 attempts (unrated) instead of a failed attempt
+            bool success = await difficultyService.CreateInitialQuestion(imageName);
             if (success)
             {
                 created++;

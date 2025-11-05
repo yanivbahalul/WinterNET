@@ -204,6 +204,32 @@ namespace HelloWorldWeb.Services
             }
         }
 
+        public async Task<bool> CreateInitialQuestion(string questionFile)
+        {
+            try
+            {
+                // Create question with 0 attempts (unrated)
+                var newRecord = new QuestionDifficulty
+                {
+                    QuestionFile = questionFile,
+                    TotalAttempts = 0,
+                    CorrectAttempts = 0,
+                    SuccessRate = 0,
+                    Difficulty = "unrated",
+                    ManualOverride = false,
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdated = DateTime.UtcNow
+                };
+                
+                return await CreateQuestionDifficulty(newRecord);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[QuestionDifficultyService] Error creating initial question: {ex.Message}");
+                return false;
+            }
+        }
+
         private async Task<bool> CreateQuestionDifficulty(QuestionDifficulty record)
         {
             try

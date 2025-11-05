@@ -258,8 +258,6 @@ namespace HelloWorldWeb.Pages
                         .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
                         .OrderBy(name => name)
                         .ToList();
-                    
-                    Console.WriteLine($"✅ Loaded {allImages.Count} images from Supabase Storage");
                 }
                 catch (Exception ex)
                 {

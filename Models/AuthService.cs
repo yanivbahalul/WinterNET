@@ -281,8 +281,6 @@ namespace HelloWorldWeb.Models
             {
                 try
                 {
-                    Console.WriteLine($"[GetAllUsers] Fetching users from Supabase (limit={limit})");
-                    
                     var response = await _supabase.From<User>().Get();
                     
                     // Apply limit and column filtering in memory
@@ -293,7 +291,6 @@ namespace HelloWorldWeb.Models
                         users = users.Take(limit.Value).ToList();
                     }
                     
-                    Console.WriteLine($"[GetAllUsers] Retrieved {users.Count} users from Supabase");
                     return users;
                 }
                 catch (Exception ex)

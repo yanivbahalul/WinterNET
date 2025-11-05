@@ -151,8 +151,8 @@ namespace HelloWorldWeb.Services
                         ? Math.Round((decimal)existing.CorrectAttempts / existing.TotalAttempts * 100, 2)
                         : 0;
                     
-                    // Auto-update difficulty based on success rate (only if not manually overridden)
-                    if (!existing.ManualOverride && existing.TotalAttempts >= 10)
+                    // Auto-update difficulty based on success rate immediately (only if not manually overridden)
+                    if (!existing.ManualOverride)
                     {
                         existing.Difficulty = existing.SuccessRate switch
                         {
@@ -160,6 +160,7 @@ namespace HelloWorldWeb.Services
                             >= 35 => "medium",
                             _ => "hard"
                         };
+                        Console.WriteLine($"[QuestionDifficultyService] 📊 Auto-updated '{questionFile}' to '{existing.Difficulty}' (success rate: {existing.SuccessRate}%)");
                     }
                     
                     return await UpdateQuestionDifficulty(existing);

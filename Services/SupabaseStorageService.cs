@@ -129,12 +129,16 @@ namespace HelloWorldWeb.Services
                 return _listCache;
 
             await EnsureInitAsync();
+            Console.WriteLine($"[Storage] Attempting to list files from bucket '{_bucket}' with prefix '{prefix}'");
+            
             var from = _client.Storage.From(_bucket);
             var list = new List<string>();
 
             // Paginate to fetch all files (SDK default may be limited)
             int limit = 1000;
             int offset = 0;
+            int totalFetched = 0;
+            
             while (true)
             {
                 Supabase.Storage.SearchOptions options = new Supabase.Storage.SearchOptions
@@ -143,23 +147,50 @@ namespace HelloWorldWeb.Services
                     Offset = offset
                 };
 
-                var page = await from.List(prefix, options);
-                if (page == null || page.Count == 0)
-                    break;
-
-                foreach (var item in page)
+                try
                 {
-                    var name = string.IsNullOrWhiteSpace(prefix) ? item.Name : (prefix.TrimEnd('/') + "/" + item.Name);
-                    if (item.Id != null)
-                        list.Add(name);
-                    else if (!name.EndsWith("/"))
-                        list.Add(name);
-                }
+                    var page = await from.List(prefix, options);
+                    
+                    if (page == null)
+                    {
+                        Console.WriteLine($"[Storage] List returned null at offset {offset}");
+                        break;
+                    }
+                    
+                    if (page.Count == 0)
+                    {
+                        Console.WriteLine($"[Storage] No more files at offset {offset}. Total fetched: {totalFetched}");
+                        break;
+                    }
+                    
+                    Console.WriteLine($"[Storage] Fetched {page.Count} items at offset {offset}");
+                    totalFetched += page.Count;
 
-                if (page.Count < limit)
+                    foreach (var item in page)
+                    {
+                        var name = string.IsNullOrWhiteSpace(prefix) ? item.Name : (prefix.TrimEnd('/') + "/" + item.Name);
+                        
+                        Console.WriteLine($"[Storage] Item: Name='{item.Name}', Id='{item.Id}', IsFolder={name.EndsWith("/")}");
+                        
+                        if (item.Id != null)
+                            list.Add(name);
+                        else if (!name.EndsWith("/"))
+                            list.Add(name);
+                    }
+
+                    if (page.Count < limit)
+                        break;
+                    offset += page.Count;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Storage] Error listing files: {ex.Message}");
+                    Console.WriteLine($"[Storage] Stack trace: {ex.StackTrace}");
                     break;
-                offset += page.Count;
+                }
             }
+            
+            Console.WriteLine($"[Storage] Total files found: {list.Count}");
             _listCache = list;
             _listCacheAt = DateTime.UtcNow;
             return list;

@@ -71,11 +71,8 @@ namespace HelloWorldWeb.Pages
                 return RedirectToPage("/Login");
             }
 
-            Console.WriteLine($"[Test OnGet] User: {username}, TestSessionService available: {_testSession != null}");
-
             if (_testSession == null)
             {
-                Console.WriteLine($"[Test OnGet] ⚠️ TestSessionService is NULL - using legacy session-based system");
                 return await OnGetLegacy();
             }
 
@@ -108,23 +105,17 @@ namespace HelloWorldWeb.Pages
             if (!string.IsNullOrEmpty(start) || session == null)
             {
                 var difficulty = Request.Query["difficulty"].ToString();
-                Console.WriteLine($"[Test OnGet] Creating new test session for user '{username}' with difficulty '{difficulty}'");
                 
                 var state = await BuildNewStateAsync(difficulty);
-                Console.WriteLine($"[Test OnGet] Built state with {state.Questions.Count} questions");
                 
                 var questionsJson = JsonConvert.SerializeObject(state.Questions);
-                Console.WriteLine($"[Test OnGet] Attempting to create session in database...");
                 
                 session = await _testSession.CreateSession(username, questionsJson);
                 
                 if (session == null)
                 {
-                    Console.WriteLine($"[Test OnGet] ⚠️ CreateSession returned NULL - falling back to legacy session-based system");
                     return await OnGetLegacy();
                 }
-
-                Console.WriteLine($"[Test OnGet] ✅ Session created successfully! Token: {session.Token}");
 
                 return RedirectToPage("/Test", new { token = session.Token });
             }
@@ -271,15 +262,12 @@ namespace HelloWorldWeb.Pages
             }
 
             var token = Request.Form["token"].ToString();
-            Console.WriteLine($"[Test OnPostEndTest] Called with token: {token}");
             
             if (_testSession != null && !string.IsNullOrEmpty(token))
             {
                 var session = await _testSession.GetSession(token);
                 if (session != null && session.Username == username)
                 {
-                    Console.WriteLine($"[Test OnPostEndTest] Session found. Current status: {session.Status}");
-                    
                     var questions = JsonConvert.DeserializeObject<List<TestQuestion>>(session.QuestionsJson) ?? new List<TestQuestion>();
                     var answers = JsonConvert.DeserializeObject<List<TestAnswer>>(session.AnswersJson) ?? new List<TestAnswer>();
                     
@@ -288,21 +276,16 @@ namespace HelloWorldWeb.Pages
                     session.Score = answers.Count(a => a != null && a.IsCorrect) * 6;
                     session.MaxScore = questions.Count * 6;
                     
-                    Console.WriteLine($"[Test OnPostEndTest] Updating session - Score: {session.Score}/{session.MaxScore}, Status: completed");
                     await _testSession.UpdateSession(session);
-                    
-                    Console.WriteLine($"[Test OnPostEndTest] ✅ Test ended successfully. Redirecting to results...");
                     
                     return RedirectToPage("/TestResults", new { token = token });
                 }
                 else
                 {
-                    Console.WriteLine($"[Test OnPostEndTest] ⚠️ Session not found or username mismatch");
                 }
             }
             else
             {
-                Console.WriteLine($"[Test OnPostEndTest] ⚠️ TestSessionService null or token empty");
             }
             
             return RedirectToPage("/TestResults");
@@ -439,8 +422,6 @@ namespace HelloWorldWeb.Pages
                 var allowedQuestions = await LoadDifficultyQuestionsAsync(difficulty);
                 if (allowedQuestions != null && allowedQuestions.Any())
                 {
-                    Console.WriteLine($"[Test] Filtering by difficulty '{difficulty}': {allowedQuestions.Count} questions available");
-                    
                     foreach (var questionFile in allowedQuestions)
                     {
                         if (string.IsNullOrWhiteSpace(questionFile))
@@ -468,7 +449,6 @@ namespace HelloWorldWeb.Pages
                         }
                     }
                     
-                    Console.WriteLine($"[Test] Created {grouped.Count} question groups from difficulty '{difficulty}'");
                     return grouped;
                 }
             }
@@ -485,23 +465,18 @@ namespace HelloWorldWeb.Pages
             {
                 if (_difficultyService != null)
                 {
-                    Console.WriteLine($"[Test] Loading difficulty '{difficulty}' from database...");
                     var questions = await _difficultyService.GetQuestionsByDifficulty(difficulty);
                     
                     if (questions != null && questions.Any())
                     {
-                        Console.WriteLine($"[Test] ✅ Loaded {questions.Count} questions from database for difficulty '{difficulty}'");
                         return questions;
                     }
-                    
-                    Console.WriteLine($"[Test] ⚠️ No questions in database for difficulty '{difficulty}'");
                 }
                 
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Test] Error loading difficulty: {ex.Message}");
                 return null;
             }
         }

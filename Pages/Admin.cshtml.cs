@@ -42,7 +42,6 @@ namespace HelloWorldWeb.Pages
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Admin] Error: {ex.Message}");
                 return StatusCode(500, $"Server error: {ex.Message}");
             }
         }
@@ -61,13 +60,10 @@ namespace HelloWorldWeb.Pages
                     EasyCount = DifficultyQuestions.Count(q => q.Difficulty == "easy");
                     MediumCount = DifficultyQuestions.Count(q => q.Difficulty == "medium");
                     HardCount = DifficultyQuestions.Count(q => q.Difficulty == "hard");
-                    
-                    Console.WriteLine($"[Admin] Loaded {DifficultyQuestions.Count} questions: {EasyCount} easy, {MediumCount} medium, {HardCount} hard");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Admin] Error: {ex.Message}");
                 DifficultyQuestions = new List<QuestionDifficulty>();
             }
         }
@@ -81,13 +77,14 @@ namespace HelloWorldWeb.Pages
                 BannedUsers = AllUsers.Where(u => u.IsBanned).ToList();
                 OnlineUsers = AllUsers.Where(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5)).ToList();
                 TopUsers = AllUsers.OrderByDescending(u => u.CorrectAnswers).Take(5).ToList();
-                AverageSuccessRate = AllUsers.Where(u => u.TotalAnswered > 0)
+                // Calculate average success rate, excluding users with 0% success rate
+                AverageSuccessRate = AllUsers
+                    .Where(u => u.TotalAnswered > 0 && u.CorrectAnswers > 0)
                     .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
                     .DefaultIfEmpty(0).Average() * 100;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Admin] Error: {ex.Message}");
                 Cheaters = new List<User>();
                 BannedUsers = new List<User>();
                 TopUsers = new List<User>();

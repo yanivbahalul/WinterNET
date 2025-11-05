@@ -61,11 +61,9 @@ builder.Services.AddSingleton<SupabaseStorageService>(sp =>
     // Only create if config is available
     if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(key))
     {
-        Console.WriteLine("⚠️ Supabase Storage not configured - will use local files");
         return null;
     }
     
-    Console.WriteLine($"✅ Supabase Storage configured: bucket='{bucket}'");
     return new SupabaseStorageService(url, key, bucket, 3600);
 });
 
@@ -151,7 +149,6 @@ app.MapGet("/api/leaderboard-data", async context =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Leaderboard API Error] {ex}");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync($"Server error: {ex.Message}");
     }
@@ -177,7 +174,6 @@ app.MapGet("/api/online-count", async context =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Online Count API Error] {ex}");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync($"Server error: {ex.Message}");
     }
@@ -201,7 +197,9 @@ app.MapGet("/api/dashboard-data", async context =>
         var banned = allUsers.Where(u => u.IsBanned).Count();
         var topUsers = allUsers.OrderByDescending(u => u.CorrectAnswers).Take(10).ToList();
         
-        var averageSuccessRate = allUsers.Where(u => u.TotalAnswered > 0)
+        // Calculate average success rate, excluding users with 0% success rate
+        var averageSuccessRate = allUsers
+            .Where(u => u.TotalAnswered > 0 && u.CorrectAnswers > 0)
             .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
             .DefaultIfEmpty(0).Average() * 100;
 
@@ -233,7 +231,6 @@ app.MapGet("/api/dashboard-data", async context =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Dashboard API Error] {ex}");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync($"Server error: {ex.Message}");
     }
@@ -256,7 +253,6 @@ app.MapGet("/api/init-question-difficulties", async context =>
 
         // Get all images from storage
         var allImages = await storage.ListFilesAsync();
-        Console.WriteLine($"🎯 Found {allImages.Count} images in storage. Initializing question difficulties...");
         
         int created = 0;
         int skipped = 0;
@@ -276,14 +272,8 @@ app.MapGet("/api/init-question-difficulties", async context =>
             if (success)
             {
                 created++;
-                if (created % 50 == 0)
-                {
-                    Console.WriteLine($"✅ Initialized {created}/{allImages.Count}...");
-                }
             }
         }
-        
-        Console.WriteLine($"✅ Initialization complete: {created} created, {skipped} already existed");
         
         var response = new { created, skipped, total = allImages.Count };
         context.Response.ContentType = "application/json";
@@ -291,7 +281,6 @@ app.MapGet("/api/init-question-difficulties", async context =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Init Difficulties Error] {ex}");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync($"Error: {ex.Message}");
     }
@@ -323,7 +312,6 @@ app.MapGet("/api/upload-images", async context =>
             .OrderBy(f => f)
             .ToList();
 
-        Console.WriteLine($"📤 Starting upload of {imageFiles.Count} images...");
         int uploaded = 0;
         int failed = 0;
 
@@ -336,20 +324,13 @@ app.MapGet("/api/upload-images", async context =>
                 {
                     await storage.UploadAsync(fileStream, fileName, "image/png", overwrite: true);
                     uploaded++;
-                    if (uploaded % 50 == 0)
-                    {
-                        Console.WriteLine($"✅ Uploaded {uploaded}/{imageFiles.Count}...");
-                    }
                 }
             }
             catch (Exception ex)
             {
                 failed++;
-                Console.WriteLine($"❌ Failed {fileName}: {ex.Message}");
             }
         }
-
-        Console.WriteLine($"✅ Upload complete: {uploaded} uploaded, {failed} failed");
 
         var response = new { uploaded, failed, total = imageFiles.Count };
         context.Response.ContentType = "application/json";
@@ -357,19 +338,11 @@ app.MapGet("/api/upload-images", async context =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Upload Images Error] {ex}");
         context.Response.StatusCode = 500;
         await context.Response.WriteAsync($"Error: {ex.Message}");
     }
 });
 
-// ✅ הדפסת הפעלה
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-    var url = app.Urls.FirstOrDefault() ?? "http://localhost:5000";
-    Console.WriteLine("❄️ WinterNET Quiz is running!");
-    Console.WriteLine($"🔗 Listening on: {url}");
-});
 
 // 🧹 ניקוי קבצי סטטיסטיקה ישנים
 var progressDir = Path.Combine(Directory.GetCurrentDirectory(), "progress");
@@ -386,11 +359,9 @@ if (Directory.Exists(progressDir))
             try
             {
                 File.Delete(file);
-                Console.WriteLine("🗑️ Deleted old session file: " + Path.GetFileName(file));
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Failed to delete: " + file + " → " + ex.Message);
             }
         }
     }

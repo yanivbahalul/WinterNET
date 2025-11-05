@@ -138,88 +138,120 @@ namespace HelloWorldWeb.Services
 
             try
             {
-                // Try SDK first
+                // Try SDK first with pagination to get ALL files
                 await EnsureInitAsync();
                 var from = _client.Storage.From(_bucket);
                 
-                var sdkOptions = new Supabase.Storage.SearchOptions
-                {
-                    Limit = 1000,
-                    Offset = 0
-                };
+                int offset = 0;
+                int limit = 1000;
+                bool hasMore = true;
                 
-                var sdkResult = await from.List(prefix, sdkOptions);
-                
-                if (sdkResult != null && sdkResult.Count > 0)
+                while (hasMore)
                 {
-                    Console.WriteLine($"[Storage] ✅ Loaded {sdkResult.Count} files from bucket '{_bucket}'");
-                    foreach (var item in sdkResult)
+                    var sdkOptions = new Supabase.Storage.SearchOptions
                     {
-                        var name = string.IsNullOrWhiteSpace(prefix) ? item.Name : (prefix.TrimEnd('/') + "/" + item.Name);
-                        
-                        if (item.Id != null)
-                            list.Add(name);
-                        else if (!name.EndsWith("/"))
-                            list.Add(name);
-                    }
-                }
-                else
-                {
-                    // Fallback: Try REST API
-                    var url = $"{_supabaseUrl}/storage/v1/object/list/{_bucket}";
-                    var request = new HttpRequestMessage(HttpMethod.Post, url);
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
-                    request.Headers.Add("apikey", _serviceRoleKey);
-                    
-                    var requestBody = new
-                    {
-                        limit = 1000,
-                        offset = 0,
-                        sortBy = new { column = "name", order = "asc" },
-                        prefix = prefix ?? ""
+                        Limit = limit,
+                        Offset = offset
                     };
-                    var jsonBody = JsonSerializer.Serialize(requestBody);
-                    request.Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
                     
-                    var response = await _httpClient.SendAsync(request);
-                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var sdkResult = await from.List(prefix, sdkOptions);
                     
-                    if (response.IsSuccessStatusCode)
+                    if (sdkResult != null && sdkResult.Count > 0)
                     {
-                        var items = JsonSerializer.Deserialize<List<StorageObject>>(responseContent, new JsonSerializerOptions 
-                        { 
-                            PropertyNameCaseInsensitive = true 
-                        });
-                        
-                        if (items != null && items.Count > 0)
+                        foreach (var item in sdkResult)
                         {
-                            Console.WriteLine($"[Storage] ✅ Loaded {items.Count} files via REST API");
-                            foreach (var item in items)
-                            {
-                                if (item != null && !string.IsNullOrWhiteSpace(item.Name))
-                                {
-                                    // Skip folders
-                                    if (item.Id == null && item.Name.EndsWith("/"))
-                                        continue;
-                                    
-                                    list.Add(item.Name);
-                                }
-                            }
+                            var name = string.IsNullOrWhiteSpace(prefix) ? item.Name : (prefix.TrimEnd('/') + "/" + item.Name);
+                            
+                            if (item.Id != null)
+                                list.Add(name);
+                            else if (!name.EndsWith("/"))
+                                list.Add(name);
+                        }
+                        
+                        // Check if we got a full page (meaning there might be more)
+                        if (sdkResult.Count < limit)
+                        {
+                            hasMore = false;
                         }
                         else
                         {
-                            Console.WriteLine($"[Storage] ⚠️ Bucket is empty or permission issue");
+                            offset += limit;
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"[Storage] ❌ REST API failed: {response.StatusCode}");
+                        // If SDK didn't work, try REST API with pagination
+                        offset = 0;
+                        hasMore = true;
+                        
+                        while (hasMore)
+                        {
+                            var url = $"{_supabaseUrl}/storage/v1/object/list/{_bucket}";
+                            var request = new HttpRequestMessage(HttpMethod.Post, url);
+                            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
+                            request.Headers.Add("apikey", _serviceRoleKey);
+                            
+                            var requestBody = new
+                            {
+                                limit = limit,
+                                offset = offset,
+                                sortBy = new { column = "name", order = "asc" },
+                                prefix = prefix ?? ""
+                            };
+                            var jsonBody = JsonSerializer.Serialize(requestBody);
+                            request.Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
+                            
+                            var response = await _httpClient.SendAsync(request);
+                            var responseContent = await response.Content.ReadAsStringAsync();
+                            
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var items = JsonSerializer.Deserialize<List<StorageObject>>(responseContent, new JsonSerializerOptions 
+                                { 
+                                    PropertyNameCaseInsensitive = true 
+                                });
+                                
+                                if (items != null && items.Count > 0)
+                                {
+                                    foreach (var item in items)
+                                    {
+                                        if (item != null && !string.IsNullOrWhiteSpace(item.Name))
+                                        {
+                                            // Skip folders
+                                            if (item.Id == null && item.Name.EndsWith("/"))
+                                                continue;
+                                            
+                                            list.Add(item.Name);
+                                        }
+                                    }
+                                    
+                                    // Check if we got a full page
+                                    if (items.Count < limit)
+                                    {
+                                        hasMore = false;
+                                    }
+                                    else
+                                    {
+                                        offset += limit;
+                                    }
+                                }
+                                else
+                                {
+                                    hasMore = false;
+                                }
+                            }
+                            else
+                            {
+                                hasMore = false;
+                            }
+                        }
+                        
+                        break; // Exit outer while loop after REST API attempt
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Storage] ❌ Error: {ex.Message}");
             }
             
             _listCache = list;

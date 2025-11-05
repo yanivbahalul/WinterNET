@@ -64,9 +64,6 @@ namespace HelloWorldWeb.Models
             var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? configuration["Supabase:Url"];
             var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY") ?? configuration["Supabase:Key"];
 
-            Console.WriteLine($"[AuthService] Supabase URL: {(string.IsNullOrEmpty(supabaseUrl) ? "MISSING" : "OK")}");
-            Console.WriteLine($"[AuthService] Supabase Key: {(string.IsNullOrEmpty(supabaseKey) ? "MISSING" : "OK")}");
-
             if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
             {
                 var options = new SupabaseOptions
@@ -75,11 +72,9 @@ namespace HelloWorldWeb.Models
                 };
 
                 _supabase = new Client(supabaseUrl, supabaseKey, options);
-                Console.WriteLine("[AuthService] Supabase client initialized successfully");
             }
             else
             {
-                Console.WriteLine("[AuthService] WARNING: No Supabase credentials found. Using fallback to local storage.");
             }
         }
 
@@ -90,24 +85,20 @@ namespace HelloWorldWeb.Models
             {
                 try
                 {
-                    Console.WriteLine($"[Authenticate] Attempting Supabase authentication: {username}");
                     var response = await _supabase
                         .From<User>()
                         .Where(x => x.Username == username)
                         .Where(x => x.Password == password)
                         .Single();
 
-                    Console.WriteLine($"[Authenticate] Successfully authenticated via Supabase: {username}");
                     return response;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Authenticate] Supabase error: {ex.Message}");
                 }
             }
             
             // Fallback to local storage
-            Console.WriteLine($"[Authenticate] Using local storage fallback: {username}");
             var users = await GetAllUsersLocal();
             return users.FirstOrDefault(u => u.Username == username && u.Password == password);
         }
@@ -147,7 +138,6 @@ namespace HelloWorldWeb.Models
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Register] Error: {ex.Message}");
                 return false;
             }
         }
@@ -178,7 +168,6 @@ namespace HelloWorldWeb.Models
             {
                 try
                 {
-                    Console.WriteLine($"[UpdateUser] Updating user via Supabase: {updatedUser.Username}");
                     updatedUser.LastSeen = DateTime.UtcNow;
                     
                     // Update using direct property updates
@@ -199,17 +188,14 @@ namespace HelloWorldWeb.Models
                     // Update in Supabase
                     await _supabase.From<User>().Update(userToUpdate);
                     
-                    Console.WriteLine($"[UpdateUser] Successfully updated user: {updatedUser.Username}");
                     return;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[UpdateUser] Supabase error: {ex.Message}");
                 }
             }
             
             // Fallback to local storage
-            Console.WriteLine($"[UpdateUser] Using local storage fallback for: {updatedUser.Username}");
             try
             {
                 var users = await GetAllUsersLocal();
@@ -222,7 +208,6 @@ namespace HelloWorldWeb.Models
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[UpdateUser] Local storage error: {ex.Message}");
             }
         }
 
@@ -245,8 +230,6 @@ namespace HelloWorldWeb.Models
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[GetTopUsers] Error: {ex.Message}");
-                    
                     // Fallback: if the optimized query fails, use the old approach
                     try
                     {
@@ -260,7 +243,6 @@ namespace HelloWorldWeb.Models
                     }
                     catch (Exception ex2)
                     {
-                        Console.WriteLine($"[GetTopUsers] Fallback error: {ex2.Message}");
                     }
                 }
             }
@@ -295,12 +277,10 @@ namespace HelloWorldWeb.Models
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[GetAllUsers] Supabase error: {ex.Message}");
                 }
             }
             
             // Fallback to local storage
-            Console.WriteLine("[GetAllUsers] Using local storage fallback");
             var allUsers = await GetAllUsersLocal();
             
             // Apply limit in local storage
@@ -325,7 +305,6 @@ namespace HelloWorldWeb.Models
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[DeleteUser] Error: {ex.Message}");
                 return false;
             }
         }
@@ -362,7 +341,6 @@ namespace HelloWorldWeb.Models
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GetAllUsersLocal] Error: {ex.Message}");
                 return new List<User>();
             }
         }
@@ -376,7 +354,6 @@ namespace HelloWorldWeb.Models
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[SaveUsersLocal] Error: {ex.Message}");
             }
         }
 
@@ -390,7 +367,6 @@ namespace HelloWorldWeb.Models
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GetOnlineUserCount] Error: {ex.Message}");
                 return 0;
             }
         }

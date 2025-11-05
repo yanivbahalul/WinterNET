@@ -63,12 +63,10 @@ namespace HelloWorldWeb.Pages
             }
 
             var token = Request.Form["token"].ToString();
-            Console.WriteLine($"[MyExams OnPost] Called with token: {token}");
             
             if (_testSession != null && !string.IsNullOrEmpty(token))
             {
                 var session = await _testSession.GetSession(token);
-                Console.WriteLine($"[MyExams OnPost] Session found: {session != null}, Status: {session?.Status}");
                 
                 if (session != null && session.Username == username && session.Status == "active")
                 {
@@ -92,20 +90,16 @@ namespace HelloWorldWeb.Pages
                     session.Score = correctCount * 6;
                     session.MaxScore = (questions?.Count ?? 0) * 6;
                     
-                    Console.WriteLine($"[MyExams OnPost] Updating session - Score: {session.Score}/{session.MaxScore}, Status: completed");
                     await _testSession.UpdateSession(session);
                     
-                    Console.WriteLine($"[MyExams OnPost] ✅ Test ended successfully");
                     TempData["TestEndedMessage"] = "המבחן הסתיים! התוצאות נשמרו.";
                 }
                 else
                 {
-                    Console.WriteLine($"[MyExams OnPost] ⚠️ Cannot end test - session not found, wrong user, or already completed");
                 }
             }
             else
             {
-                Console.WriteLine($"[MyExams OnPost] ⚠️ TestSessionService null or token empty");
             }
             
             return RedirectToPage("/MyExams");

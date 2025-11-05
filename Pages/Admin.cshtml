@@ -445,27 +445,12 @@ function filterByDifficulty(difficulty) {
         <p id="difficulty-count" style="text-align: center; color: #999; margin-top: 10px;">
             מציג את כל @Model.DifficultyQuestions.Count השאלות
         </p>
-        
-        <div style="text-align: center; margin-top: 15px;">
-            <a href="/api/init-question-difficulties" 
-               style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #1e90ff, #0077cc); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s;"
-               onmouseover="this.style.transform='scale(1.05)'" 
-               onmouseout="this.style.transform='scale(1)'">
-                🎯 אתחל שאלות חדשות
-            </a>
-        </div>
     }
     else
     {
         <div style="text-align: center; padding: 40px; color: #999;">
             <p>אין עדיין נתוני רמות קושי במערכת</p>
-            <p style="font-size: 14px; margin-bottom: 20px;">לחץ על הכפתור למטה כדי לאתחל את כל השאלות</p>
-            <a href="/api/init-question-difficulties" 
-               style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #28a745, #20c997); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; transition: all 0.3s;"
-               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 20px rgba(40, 167, 69, 0.4)'" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                🎯 אתחל טבלת קושי שאלות
-            </a>
+            <p style="font-size: 14px; color: #666;">השתמש ב-SQL Editor של Supabase כדי לאתחל את השאלות</p>
         </div>
     }
 </div>

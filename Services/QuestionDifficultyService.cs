@@ -60,7 +60,6 @@ namespace HelloWorldWeb.Services
                 
                 if (!res.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[QuestionDifficultyService] Error getting questions: {res.StatusCode}");
                     return new List<string>();
                 }
 
@@ -74,7 +73,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Exception: {ex.Message}");
                 return new List<string>();
             }
         }
@@ -95,7 +93,6 @@ namespace HelloWorldWeb.Services
                 
                 if (!res.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[QuestionDifficultyService] Error getting all difficulties: {res.StatusCode}");
                     return new Dictionary<string, string>();
                 }
 
@@ -112,7 +109,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Exception: {ex.Message}");
                 return new Dictionary<string, string>();
             }
         }
@@ -147,8 +143,6 @@ namespace HelloWorldWeb.Services
                         LastUpdated = DateTime.UtcNow
                     };
                     
-                    Console.WriteLine($"[QuestionDifficultyService] 📊 Created '{questionFile}' with difficulty '{difficulty}' (success rate: {successRate}%)");
-                    
                     return await CreateQuestionDifficulty(newRecord);
                 }
                 else
@@ -174,7 +168,6 @@ namespace HelloWorldWeb.Services
                         
                         if (oldDifficulty != existing.Difficulty)
                         {
-                            Console.WriteLine($"[QuestionDifficultyService] 📊 Auto-updated '{questionFile}' from '{oldDifficulty}' to '{existing.Difficulty}' (attempts: {existing.TotalAttempts}, success rate: {existing.SuccessRate}%)");
                         }
                     }
                     
@@ -183,7 +176,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Error updating stats: {ex.Message}");
                 return false;
             }
         }
@@ -209,7 +201,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Exception getting question: {ex.Message}");
                 return null;
             }
         }
@@ -235,7 +226,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Error creating initial question: {ex.Message}");
                 return false;
             }
         }
@@ -266,7 +256,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Error creating: {ex.Message}");
                 return false;
             }
         }
@@ -304,7 +293,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Error updating: {ex.Message}");
                 return false;
             }
         }
@@ -339,7 +327,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Error setting manual difficulty: {ex.Message}");
                 return false;
             }
         }
@@ -365,7 +352,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Error recalculating: {ex.Message}");
                 return 0;
             }
         }
@@ -380,7 +366,6 @@ namespace HelloWorldWeb.Services
                 
                 if (!res.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[QuestionDifficultyService] Error getting all: {res.StatusCode}");
                     return new List<QuestionDifficulty>();
                 }
 
@@ -392,7 +377,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Exception: {ex.Message}");
                 return new List<QuestionDifficulty>();
             }
         }

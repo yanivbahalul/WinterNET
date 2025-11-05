@@ -53,11 +53,7 @@ namespace HelloWorldWeb.Services
         {
             try
             {
-                Console.WriteLine($"[TestSessionService] CreateSession called for user: {username}");
-                Console.WriteLine($"[TestSessionService] Questions JSON length: {questionsJson?.Length ?? 0}");
-                
                 var token = GenerateToken();
-                Console.WriteLine($"[TestSessionService] Generated token: {token}");
                 
                 var now = DateTime.UtcNow;
                 
@@ -95,27 +91,19 @@ namespace HelloWorldWeb.Services
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                Console.WriteLine($"[TestSessionService] Posting to: {_url}/rest/v1/test_sessions");
                 
                 var res = await _client.PostAsync($"{_url}/rest/v1/test_sessions", content);
-                
-                Console.WriteLine($"[TestSessionService] Response status: {res.StatusCode}");
                 
                 if (!res.IsSuccessStatusCode)
                 {
                     var error = await res.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[TestSessionService] ❌ CreateSession Error - Status: {res.StatusCode}");
-                    Console.WriteLine($"[TestSessionService] Error details: {error}");
                     return null;
                 }
 
-                Console.WriteLine($"[TestSessionService] ✅ Session created successfully!");
                 return session;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[TestSessionService] ❌ CreateSession Exception: {ex.Message}");
-                Console.WriteLine($"[TestSessionService] Stack trace: {ex.StackTrace}");
                 return null;
             }
         }
@@ -127,7 +115,6 @@ namespace HelloWorldWeb.Services
                 var res = await _client.GetAsync($"{_url}/rest/v1/test_sessions?Token=eq.{Uri.EscapeDataString(token)}&select=*");
                 if (!res.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[GetSession Error] {res.StatusCode}");
                     return null;
                 }
 
@@ -141,7 +128,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GetSession Exception] {ex}");
                 return null;
             }
         }
@@ -156,7 +142,6 @@ namespace HelloWorldWeb.Services
                 
                 if (!res.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[GetActiveSession Error] {res.StatusCode}");
                     return null;
                 }
 
@@ -179,7 +164,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GetActiveSession Exception] {ex}");
                 return null;
             }
         }
@@ -189,9 +173,6 @@ namespace HelloWorldWeb.Services
             try
             {
                 session.UpdatedAt = DateTime.UtcNow;
-                
-                Console.WriteLine($"[TestSessionService UpdateSession] Token: {session.Token}, Status: {session.Status}");
-                Console.WriteLine($"[TestSessionService UpdateSession] Score: {session.Score}/{session.MaxScore}");
                 
                 var patch = new
                 {
@@ -212,26 +193,18 @@ namespace HelloWorldWeb.Services
                 };
                 request.Headers.Add("Prefer", "return=minimal");
 
-                Console.WriteLine($"[TestSessionService UpdateSession] Sending PATCH to Supabase...");
                 var response = await _client.SendAsync(request);
-                
-                Console.WriteLine($"[TestSessionService UpdateSession] Response: {response.StatusCode}");
                 
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"[TestSessionService UpdateSession] ❌ Error - Status: {response.StatusCode}");
-                    Console.WriteLine($"[TestSessionService UpdateSession] Error details: {error}");
                     return false;
                 }
                 
-                Console.WriteLine($"[TestSessionService UpdateSession] ✅ Session updated successfully!");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[TestSessionService UpdateSession] ❌ Exception: {ex.Message}");
-                Console.WriteLine($"[TestSessionService UpdateSession] Stack trace: {ex.StackTrace}");
                 return false;
             }
         }
@@ -260,7 +233,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[UpdateSessionStatus Exception] {ex}");
                 return false;
             }
         }
@@ -275,7 +247,6 @@ namespace HelloWorldWeb.Services
                 
                 if (!res.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[GetUserSessions Error] {res.StatusCode}");
                     return new List<TestSession>();
                 }
 
@@ -289,7 +260,6 @@ namespace HelloWorldWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[GetUserSessions Exception] {ex}");
                 return new List<TestSession>();
             }
         }

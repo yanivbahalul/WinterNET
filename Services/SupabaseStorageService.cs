@@ -136,77 +136,111 @@ namespace HelloWorldWeb.Services
             if (_listCache != null && (DateTime.UtcNow - _listCacheAt) < _listTtl)
                 return _listCache;
 
-            Console.WriteLine($"[Storage] Attempting to list files from bucket '{_bucket}' with prefix '{prefix}' using REST API");
+            Console.WriteLine($"[Storage] Attempting to list files from bucket '{_bucket}' with prefix '{prefix}'");
             
             var list = new List<string>();
 
             try
             {
-                // Use REST API directly instead of SDK
-                var url = $"{_supabaseUrl}/storage/v1/object/list/{_bucket}";
+                // Try BOTH methods: SDK and REST API
                 
-                Console.WriteLine($"[Storage] REST API URL: {url}");
-                Console.WriteLine($"[Storage] Bucket: {_bucket}");
-                Console.WriteLine($"[Storage] Prefix: '{prefix}'");
+                // Method 1: Try SDK first
+                Console.WriteLine($"[Storage] Method 1: Trying SDK List()...");
+                await EnsureInitAsync();
+                var from = _client.Storage.From(_bucket);
                 
-                var request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
-                request.Headers.Add("apikey", _serviceRoleKey);
-                
-                // Build request body - prefix is required!
-                var requestBody = new
+                var sdkOptions = new Supabase.Storage.SearchOptions
                 {
-                    limit = 1000,
-                    offset = 0,
-                    sortBy = new { column = "name", order = "asc" },
-                    prefix = prefix ?? ""
+                    Limit = 1000,
+                    Offset = 0
                 };
-                var jsonBody = JsonSerializer.Serialize(requestBody);
-                Console.WriteLine($"[Storage] Request body: {jsonBody}");
                 
-                request.Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
+                var sdkResult = await from.List(prefix, sdkOptions);
+                Console.WriteLine($"[Storage] SDK returned: {(sdkResult == null ? "null" : $"{sdkResult.Count} items")}");
                 
-                var response = await _httpClient.SendAsync(request);
-                var responseContent = await response.Content.ReadAsStringAsync();
-                
-                Console.WriteLine($"[Storage] REST API Response Status: {response.StatusCode}");
-                Console.WriteLine($"[Storage] REST API Response: {responseContent.Substring(0, Math.Min(500, responseContent.Length))}...");
-                
-                if (response.IsSuccessStatusCode)
+                if (sdkResult != null && sdkResult.Count > 0)
                 {
-                    var items = JsonSerializer.Deserialize<List<StorageObject>>(responseContent, new JsonSerializerOptions 
-                    { 
-                        PropertyNameCaseInsensitive = true 
-                    });
-                    
-                    if (items != null)
+                    Console.WriteLine($"[Storage] ✅ SDK worked! Found {sdkResult.Count} items");
+                    foreach (var item in sdkResult)
                     {
-                        Console.WriteLine($"[Storage] Found {items.Count} items");
-                        foreach (var item in items)
-                        {
-                            if (item != null && !string.IsNullOrWhiteSpace(item.Name))
-                            {
-                                // Skip folders
-                                if (item.Id == null && item.Name.EndsWith("/"))
-                                {
-                                    Console.WriteLine($"[Storage] Skipping folder: {item.Name}");
-                                    continue;
-                                }
-                                
-                                Console.WriteLine($"[Storage] Adding file: {item.Name}");
-                                list.Add(item.Name);
-                            }
-                        }
+                        var name = string.IsNullOrWhiteSpace(prefix) ? item.Name : (prefix.TrimEnd('/') + "/" + item.Name);
+                        Console.WriteLine($"[Storage] SDK Item: Name='{item.Name}', Id='{item.Id}'");
+                        
+                        if (item.Id != null)
+                            list.Add(name);
+                        else if (!name.EndsWith("/"))
+                            list.Add(name);
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[Storage] REST API failed: {responseContent}");
+                    // Method 2: Try REST API
+                    Console.WriteLine($"[Storage] Method 2: SDK failed, trying REST API...");
+                    var url = $"{_supabaseUrl}/storage/v1/object/list/{_bucket}";
+                    
+                    Console.WriteLine($"[Storage] REST API URL: {url}");
+                    
+                    var request = new HttpRequestMessage(HttpMethod.Post, url);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
+                    request.Headers.Add("apikey", _serviceRoleKey);
+                    
+                    var requestBody = new
+                    {
+                        limit = 1000,
+                        offset = 0,
+                        sortBy = new { column = "name", order = "asc" },
+                        prefix = prefix ?? ""
+                    };
+                    var jsonBody = JsonSerializer.Serialize(requestBody);
+                    Console.WriteLine($"[Storage] Request body: {jsonBody}");
+                    
+                    request.Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
+                    
+                    var response = await _httpClient.SendAsync(request);
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    
+                    Console.WriteLine($"[Storage] REST API Response Status: {response.StatusCode}");
+                    Console.WriteLine($"[Storage] REST API Response: {responseContent.Substring(0, Math.Min(500, responseContent.Length))}");
+                    
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var items = JsonSerializer.Deserialize<List<StorageObject>>(responseContent, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true 
+                        });
+                        
+                        if (items != null && items.Count > 0)
+                        {
+                            Console.WriteLine($"[Storage] ✅ REST API worked! Found {items.Count} items");
+                            foreach (var item in items)
+                            {
+                                if (item != null && !string.IsNullOrWhiteSpace(item.Name))
+                                {
+                                    if (item.Id == null && item.Name.EndsWith("/"))
+                                    {
+                                        Console.WriteLine($"[Storage] Skipping folder: {item.Name}");
+                                        continue;
+                                    }
+                                    
+                                    Console.WriteLine($"[Storage] REST Item: {item.Name}");
+                                    list.Add(item.Name);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[Storage] ❌ REST API returned empty array - bucket might be empty or have permission issues");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[Storage] ❌ REST API failed: {responseContent}");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Storage] Error listing files with REST API: {ex.Message}");
+                Console.WriteLine($"[Storage] ❌ Error listing files: {ex.Message}");
                 Console.WriteLine($"[Storage] Stack trace: {ex.StackTrace}");
             }
             

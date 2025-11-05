@@ -56,11 +56,13 @@ namespace HelloWorldWeb.Pages
                     // Auto-recalculate difficulties to ensure they're always up-to-date
                     await _difficultyService.RecalculateAllDifficulties();
                     
-                    // Load updated questions (limit to 50 for performance)
-                    DifficultyQuestions = await _difficultyService.GetAllQuestions(50);
+                    // Load ALL questions (no limit)
+                    DifficultyQuestions = await _difficultyService.GetAllQuestions(1000);
                     EasyCount = DifficultyQuestions.Count(q => q.Difficulty == "easy");
                     MediumCount = DifficultyQuestions.Count(q => q.Difficulty == "medium");
                     HardCount = DifficultyQuestions.Count(q => q.Difficulty == "hard");
+                    
+                    Console.WriteLine($"[Admin] Loaded {DifficultyQuestions.Count} questions: {EasyCount} easy, {MediumCount} medium, {HardCount} hard");
                 }
             }
             catch (Exception ex)

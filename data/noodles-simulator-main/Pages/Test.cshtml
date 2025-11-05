@@ -1,0 +1,142 @@
+@page
+@model NoodlesSimulator.Pages.TestModel
+@{
+    ViewData["Title"] = "מצב מבחן";
+}
+
+<head>
+    <meta charset="utf-8" />
+    <title>Noodles Simulator — Test Mode</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo/noodles-logo-transparent.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo/noodles-logo-transparent.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo/noodles-logo-transparent.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#222222">
+    <meta name="robots" content="noindex">
+}</head>
+
+<img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+<div class="logo-header">
+    <a href="/Index" style="display:inline-block;">
+        <img src="/logo/noodles-logo-transparent.png" alt="Noodles Simulator Logo" />
+    </a>
+    
+</div>
+
+<div class="quiz-container" style="position: relative;">
+    <!-- End Test Button -->
+    @if (ViewData["Token"] != null)
+    {
+        <form method="post" action="/Test?handler=EndTest" style="position: absolute; top: 10px; left: 10px; margin: 0;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="token" value="@ViewData["Token"]" />
+            <button type="submit" onclick="return confirm('האם אתה בטוח שברצונך לסיים את המבחן? התוצאות יישמרו.');" 
+                    style="padding: 8px 16px; font-size: 14px; background-color: #d32f2f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.3s;">
+                סיים מבחן
+            </button>
+        </form>
+    }
+
+    <h2 style="margin: 0 0 10px 0;">מצב מבחן</h2>
+    
+    @if (TempData["ActiveTestAlert"] != null)
+    {
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; animation: shake 0.5s;">
+            <strong style="color: #856404;">⚠️ @TempData["ActiveTestAlert"]</strong>
+        </div>
+    }
+    
+    <p style="margin: 0 0 10px 0; font-size: 14px; color: #ccc;">
+        שאלה @Model.DisplayQuestionNumber מתוך 17 · זמן נותר: <span id="countdown">--:--:--</span>
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.QuestionImageUrl))
+    {
+        <img src="@Model.QuestionImageUrl" alt="שאלה" loading="lazy" id="main-question-image" style="cursor: pointer;" onclick="openImageModal()" />
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="questionIndex" value="@Model.CurrentIndex" />
+        @if (ViewData["Token"] != null)
+        {
+            <input type="hidden" name="token" value="@ViewData["Token"]" />
+        }
+
+        <div class="answers">
+            @foreach (var answer in Model.ShuffledAnswers ?? new Dictionary<string, string>())
+            {
+                <button type="submit"
+                        name="answer"
+                        value="@answer.Key"
+                        class="answer-btn">
+                    <img src="@(Model.AnswerImageUrls != null && Model.AnswerImageUrls.ContainsKey(answer.Key) ? Model.AnswerImageUrls[answer.Key] : "")" alt="תשובה" loading="lazy" />
+                </button>
+            }
+        </div>
+    </form>
+
+</div>
+
+<!-- Image Modal -->
+<div id="image-modal" class="image-modal" style="display:none;">
+    <span class="close-modal" onclick="closeImageModal()">&times;</span>
+    <img class="modal-content" id="modal-img" src="@Model.QuestionImageUrl" alt="שאלה מוגדלת" />
+</div>
+
+<style>
+@@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+</style>
+
+<script>
+function openImageModal() {
+    var modal = document.getElementById('image-modal');
+    var modalImg = document.getElementById('modal-img');
+    modalImg.src = '@Model.QuestionImageUrl';
+    modal.style.display = 'flex';
+}
+function closeImageModal() {
+    var modal = document.getElementById('image-modal');
+    modal.style.display = 'none';
+}
+
+// Client-side countdown (for UX only; server enforces)
+(function() {
+    var endUtc = '@Model.TestEndUtcString';
+    if (!endUtc) return;
+    var end = new Date(endUtc).getTime();
+    function tick() {
+        var now = new Date().getTime();
+        var diff = Math.max(0, end - now);
+        var h = Math.floor(diff / 3600000);
+        var m = Math.floor((diff % 3600000) / 60000);
+        var s = Math.floor((diff % 60000) / 1000);
+        var pad = n => (n < 10 ? '0' + n : '' + n);
+        var el = document.getElementById('countdown');
+        if (el) el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+        if (diff <= 0) {
+            window.location.reload();
+            return;
+        }
+        setTimeout(tick, 1000);
+    }
+    tick();
+})();
+
+// Close image modal when clicking outside the enlarged image (on the overlay)
+document.addEventListener('DOMContentLoaded', function () {
+    var modal = document.getElementById('image-modal');
+    if (!modal) return;
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeImageModal();
+    });
+});
+</script>
+

@@ -1,0 +1,91 @@
+@page
+@model NoodlesSimulator.Pages.QuestionViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>Noodles Simulator — צפייה בשאלה</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <a href="/Dashboard" class="back-to-quiz">⬅ חזרה לניהול</a>
+    <img src="/assets/background.gif" class="background-gif" alt="רקע" />
+
+    <div class="logo-header">
+        <a href="/Index" style="display:inline-block;">
+            <img src="/logo/noodles-logo-transparent.png" alt="Noodles Simulator Logo" />
+        </a>
+    </div>
+
+    <div class="quiz-container">
+        @if (!string.IsNullOrWhiteSpace(Model.QuestionImageUrl))
+        {
+            <img src="@Model.QuestionImageUrl" alt="שאלה" loading="lazy" id="main-question-image" style="cursor: pointer;" onclick="openImageModal()" />
+        }
+
+        <div class="answers">
+            @foreach (var kv in Model.AnswerImageUrls)
+            {
+                var answerClass = "";
+                if (Model.ShowAnswerResults)
+                {
+                    // Mark correct answer in green
+                    if (kv.Key == Model.CorrectAnswerKey)
+                    {
+                        answerClass = "correct";
+                    }
+                    // Mark selected (wrong) answer in red
+                    else if (kv.Key == Model.SelectedAnswerKey)
+                    {
+                        answerClass = "incorrect";
+                    }
+                }
+
+                <button class="answer-btn @answerClass" disabled style="display: flex; justify-content: center; align-items: center;">
+                    <img src="@kv.Value" alt="תשובה" loading="lazy" style="margin: 0 auto;" />
+                </button>
+            }
+        </div>
+        
+        @if (Model.ShowAnswerResults)
+        {
+            var isCorrect = Model.SelectedAnswerKey == Model.CorrectAnswerKey;
+            <p style="margin-top:15px; font-size:18px; color:@(isCorrect ? "#32cd32" : "#ff4c4c"); font-weight: bold; text-align: center;">
+                @(isCorrect ? "✓ תשובה נכונה!" : "✗ תשובה שגויה")
+            </p>
+        }
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="image-modal" style="display:none;">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content" id="modal-img" src="@Model.QuestionImageUrl" alt="שאלה מוגדלת" />
+    </div>
+
+    <script>
+    function openImageModal() {
+        var modal = document.getElementById('image-modal');
+        var modalImg = document.getElementById('modal-img');
+        modalImg.src = '@Model.QuestionImageUrl';
+        modal.style.display = 'flex';
+    }
+    function closeImageModal() {
+        var modal = document.getElementById('image-modal');
+        modal.style.display = 'none';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('image-modal');
+        if (!modal) return;
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeImageModal();
+        });
+    });
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,74 @@
+@page
+@model NoodlesSimulator.Pages.TestResultsModel
+@{
+    ViewData["Title"] = "סיכום מבחן";
+}
+
+<head>
+    <meta charset="utf-8" />
+    <title>Noodles Simulator — Test Summary</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo/noodles-logo-transparent.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo/noodles-logo-transparent.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo/noodles-logo-transparent.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#222222">
+    <meta name="robots" content="noindex">
+}</head>
+
+<img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+<div class="logo-header">
+    <a href="/Index" style="display:inline-block;">
+        <img src="/logo/noodles-logo-transparent.png" alt="Noodles Simulator Logo" />
+    </a>
+</div>
+
+<div class="quiz-container">
+    <h2 style="margin-top: 0;">סיכום מבחן</h2>
+    <p style="margin: 6px 0 16px 0;">
+        ניקוד: <strong>@Model.Score</strong> מתוך @Model.MaxScore
+        · נכונות: <strong>@Model.CorrectCount</strong> / @Model.Total
+        · זמן: <strong>@Model.ElapsedText</strong>
+    </p>
+
+    <div style="width: 100%;">
+        @for (int i = 0; i < Model.Items.Count; i++)
+        {
+            var item = Model.Items[i];
+            <div style="display:flex; gap:16px; align-items:flex-start; margin-bottom: 16px; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 12px; position: relative;">
+                <a href="/TestReview?i=@i" title="הצג סקירה"
+                   style="position:absolute; top:8px; right:8px; text-decoration:none; background:#333; color:#fff; width:32px; height:32px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+                    🔍
+                </a>
+                <img src="@item.QuestionUrl" alt="שאלה @(i+1)" style="max-width: 220px; max-height: 140px; border-radius: 8px; object-fit: contain; background: #111;" />
+                <div style="flex:1;">
+                    <div style="margin-bottom: 6px; font-weight: bold; color: @(item.IsCorrect ? "#32cd32" : "#ff4c4c")">
+                        שאלה @(i+1) — @(item.IsCorrect ? "נכון" : "לא נכון")
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        @if (!string.IsNullOrWhiteSpace(item.SelectedUrl))
+                        {
+                            <div>
+                                <div style="font-size: 12px; color: #ccc;">התשובה שנענתה</div>
+                                <img src="@item.SelectedUrl" alt="נענתה" class="result-ans" />
+                            </div>
+                        }
+                        <div>
+                            <div style="font-size: 12px; color: #ccc;">התשובה הנכונה</div>
+                            <img src="@item.CorrectUrl" alt="נכונה" class="result-ans" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="button-row">
+        <form method="get" action="/Index">
+            <button class="next-question-btn">חזרה לחידון</button>
+        </form>
+    </div>
+</div>
+

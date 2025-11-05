@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.Json;
 using Supabase;
 
-namespace HelloWorldWeb.Services
+namespace NoodlesSimulator.Services
 {
     public class SupabaseStorageService
     {
@@ -21,9 +18,6 @@ namespace HelloWorldWeb.Services
         private readonly TimeSpan _listTtl = TimeSpan.FromMinutes(5);
         private readonly Dictionary<string, (string url, DateTime cachedAt)> _signedUrlCache = new();
         private readonly TimeSpan _signedUrlTtl;
-        private readonly string _supabaseUrl;
-        private readonly string _serviceRoleKey;
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         public SupabaseStorageService(string url, string serviceRoleKey, string bucket, int ttlSeconds = 3600)
         {
@@ -38,8 +32,6 @@ namespace HelloWorldWeb.Services
             _bucket = bucket;
             _ttlSeconds = ttlSeconds > 0 ? ttlSeconds : 3600;
             _signedUrlTtl = TimeSpan.FromSeconds(Math.Max(60, _ttlSeconds - 60));
-            _supabaseUrl = url.TrimEnd('/');
-            _serviceRoleKey = serviceRoleKey;
         }
 
         private async Task EnsureInitAsync()
@@ -136,85 +128,41 @@ namespace HelloWorldWeb.Services
             if (_listCache != null && (DateTime.UtcNow - _listCacheAt) < _listTtl)
                 return _listCache;
 
-            Console.WriteLine($"[Storage] Attempting to list files from bucket '{_bucket}' with prefix '{prefix}' using REST API");
-            
+            await EnsureInitAsync();
+            var from = _client.Storage.From(_bucket);
             var list = new List<string>();
 
-            try
+            // Paginate to fetch all files (SDK default may be limited)
+            int limit = 1000;
+            int offset = 0;
+            while (true)
             {
-                // Use REST API directly instead of SDK
-                var url = $"{_supabaseUrl}/storage/v1/object/list/{_bucket}";
-                if (!string.IsNullOrEmpty(prefix))
+                Supabase.Storage.SearchOptions options = new Supabase.Storage.SearchOptions
                 {
-                    url += $"?prefix={Uri.EscapeDataString(prefix)}";
-                }
-                
-                Console.WriteLine($"[Storage] REST API URL: {url}");
-                
-                var request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
-                request.Headers.Add("apikey", _serviceRoleKey);
-                request.Content = new StringContent("{\"limit\":1000,\"offset\":0,\"sortBy\":{\"column\":\"name\",\"order\":\"asc\"}}", 
-                    System.Text.Encoding.UTF8, "application/json");
-                
-                var response = await _httpClient.SendAsync(request);
-                var responseContent = await response.Content.ReadAsStringAsync();
-                
-                Console.WriteLine($"[Storage] REST API Response Status: {response.StatusCode}");
-                Console.WriteLine($"[Storage] REST API Response: {responseContent.Substring(0, Math.Min(500, responseContent.Length))}...");
-                
-                if (response.IsSuccessStatusCode)
+                    Limit = limit,
+                    Offset = offset
+                };
+
+                var page = await from.List(prefix, options);
+                if (page == null || page.Count == 0)
+                    break;
+
+                foreach (var item in page)
                 {
-                    var items = JsonSerializer.Deserialize<List<StorageObject>>(responseContent, new JsonSerializerOptions 
-                    { 
-                        PropertyNameCaseInsensitive = true 
-                    });
-                    
-                    if (items != null)
-                    {
-                        Console.WriteLine($"[Storage] Found {items.Count} items");
-                        foreach (var item in items)
-                        {
-                            if (item != null && !string.IsNullOrWhiteSpace(item.Name))
-                            {
-                                // Skip folders
-                                if (item.Id == null && item.Name.EndsWith("/"))
-                                {
-                                    Console.WriteLine($"[Storage] Skipping folder: {item.Name}");
-                                    continue;
-                                }
-                                
-                                Console.WriteLine($"[Storage] Adding file: {item.Name}");
-                                list.Add(item.Name);
-                            }
-                        }
-                    }
+                    var name = string.IsNullOrWhiteSpace(prefix) ? item.Name : (prefix.TrimEnd('/') + "/" + item.Name);
+                    if (item.Id != null)
+                        list.Add(name);
+                    else if (!name.EndsWith("/"))
+                        list.Add(name);
                 }
-                else
-                {
-                    Console.WriteLine($"[Storage] REST API failed: {responseContent}");
-                }
+
+                if (page.Count < limit)
+                    break;
+                offset += page.Count;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[Storage] Error listing files with REST API: {ex.Message}");
-                Console.WriteLine($"[Storage] Stack trace: {ex.StackTrace}");
-            }
-            
-            Console.WriteLine($"[Storage] Total files found: {list.Count}");
             _listCache = list;
             _listCacheAt = DateTime.UtcNow;
             return list;
-        }
-        
-        private class StorageObject
-        {
-            public string Name { get; set; }
-            public string Id { get; set; }
-            public DateTime? Updated_at { get; set; }
-            public DateTime? Created_at { get; set; }
-            public DateTime? Last_accessed_at { get; set; }
-            public object Metadata { get; set; }
         }
 
         /// <summary>
@@ -271,4 +219,3 @@ namespace HelloWorldWeb.Services
         }
     }
 }
-

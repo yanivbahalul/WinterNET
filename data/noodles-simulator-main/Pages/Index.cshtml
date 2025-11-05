@@ -1,0 +1,446 @@
+@page
+@model NoodlesSimulator.Pages.IndexModel
+@{
+    ViewData["Title"] = "Noodles Simulator — Quiz";
+}
+
+<head>
+    <meta charset="utf-8" />
+    <title>Noodles Simulator — Quiz</title>
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo/noodles-logo-transparent.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo/noodles-logo-transparent.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo/noodles-logo-transparent.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#222222">
+</head>
+
+<img src="/assets/background.gif" alt="רקע" class="background-gif" />
+
+<div class="logo-header">
+    <a href="/Index" style="display:inline-block;">
+        <img src="/logo/noodles-logo-transparent.png" alt="Noodles Simulator Logo" />
+    </a>
+</div>
+
+<button onclick="logout()" class="logout-btn" style="position: fixed; top: 20px; left: 20px;">🚪 התנתקות</button>
+
+<script>
+function logout() {
+    document.cookie = "Username=; Max-Age=0; path=/;";
+    fetch('/clear-session', { method: 'POST' })
+        .then(() => location.reload());
+}
+</script>
+
+<div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px;">
+    <a href="/MyExams" class="next-question-btn" style="text-decoration: none;">📋 המבחנים שלי</a>
+    <a href="/Leaderboard" class="next-question-btn" style="text-decoration: none;">🏆 מובילים</a>
+    @if (Model.Username == "Admin")
+    {
+        <a href="/Dashboard" class="next-question-btn" style="text-decoration: none;">🛠️ ניהול</a>
+    }
+</div>
+
+<div style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
+    <a href="https://github.com/yanivbahalul/noodles-simulator" target="_blank"
+       title="דרג את הפרויקט שלי"
+       style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+              width: 50px; height: 50px; border-radius: 50%; background-color: #ffc107;
+              color: black; font-size: 28px; font-weight: bold; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+        ⭐
+    </a>
+</div>
+
+<p style="color: black; text-align: center; margin-top: 60px; font-size: 18px;">
+    👤 Logged in as <strong>@Model.Username</strong>
+</p>
+
+<p style="color: black; text-align: center; margin-bottom: 10px; font-size: 16px;">
+    🟢 מחוברים כעת: <strong id="online-count">@Model.OnlineCount</strong>
+</p>
+
+<div class="quiz-container">
+    <img src="@Model.QuestionImageUrl" alt="שאלה" loading="lazy" id="main-question-image" style="cursor: pointer;" onclick="openImageModal()" />
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="questionImage" value="@Model.QuestionImage" />
+        <input type="hidden" name="answersJson" value='@Newtonsoft.Json.JsonConvert.SerializeObject(Model.ShuffledAnswers)' />
+
+        <div class="answers">
+            @foreach (var answer in Model.ShuffledAnswers ?? new Dictionary<string, string>())
+            {
+                var answerClass = "";
+                if (Model.AnswerChecked)
+                {
+                    answerClass = answer.Key == "correct" ? "correct" :
+                        (Model.SelectedAnswer == answer.Key ? "incorrect" : "");
+                }
+
+                <button type="submit"
+                        name="answer"
+                        value="@answer.Key"
+                        class="answer-btn @answerClass"
+                        @(Model.AnswerChecked ? "disabled" : "")>
+                    <img src="@(Model.AnswerImageUrls != null && Model.AnswerImageUrls.ContainsKey(answer.Key) ? Model.AnswerImageUrls[answer.Key] : "")" alt="תשובה" loading="lazy" />
+                </button>
+            }
+        </div>
+    </form>
+
+    @if (Model.AnswerChecked)
+    {
+        <p style="margin-top:15px; font-size:18px; color:@(Model.IsCorrect ? "#32cd32" : "#ff4c4c"); font-weight: bold;">
+            @(Model.IsCorrect ? "תשובה נכונה!" : "תשובה שגויה")
+        </p>
+    }
+
+    <!-- test-mode button (single) - updated -->
+    <div class="button-row">
+        <form style="margin: 0;">
+            <button type="button" class="next-question-btn" onclick="openDifficultyModal()">מצב מבחן</button>
+        </form>
+        <form method="get">
+            <button class="next-question-btn">שאלה הבאה</button>
+        </form>
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="reset" value="1" />
+            <button class="next-question-btn" style="background-color: #aa3333;">איפוס שאלות</button>
+        </form>
+    </div>
+</div>
+
+<!-- Difficulty Selection Modal -->
+<div id="difficulty-modal" class="difficulty-modal" style="display:none;">
+    <div class="difficulty-modal-content">
+        <span class="close-difficulty-modal" onclick="closeDifficultyModal()">&times;</span>
+        <h2 style="text-align: center; color: white; margin-bottom: 30px; font-size: 28px;">בחר רמת קושי</h2>
+        <div class="difficulty-buttons">
+            <a href="/Test?start=1&difficulty=easy" class="difficulty-btn difficulty-easy">
+                <span class="difficulty-emoji">🟢</span>
+                <span class="difficulty-text">קל</span>
+            </a>
+            <a href="/Test?start=1&difficulty=medium" class="difficulty-btn difficulty-medium">
+                <span class="difficulty-emoji">🟡</span>
+                <span class="difficulty-text">בינוני</span>
+            </a>
+            <a href="/Test?start=1&difficulty=hard" class="difficulty-btn difficulty-hard">
+                <span class="difficulty-emoji">🔴</span>
+                <span class="difficulty-text">קשה</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="image-modal" class="image-modal" style="display:none;">
+    <span class="close-modal" onclick="closeImageModal()">&times;</span>
+    <img class="modal-content" id="modal-img" src="@Model.QuestionImageUrl" alt="שאלה מוגדלת" />
+</div>
+
+<style>
+/* Difficulty Modal Styles */
+.difficulty-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    animation: fadeIn 0.3s;
+}
+
+.difficulty-modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    margin: 15% auto;
+    padding: 40px;
+    border-radius: 15px;
+    max-width: 450px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    animation: slideDown 0.3s;
+    direction: rtl;
+}
+
+.difficulty-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.difficulty-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.difficulty-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.difficulty-easy:hover {
+    border-color: #4caf50;
+    box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+}
+
+.difficulty-medium:hover {
+    border-color: #ffa726;
+    box-shadow: 0 5px 20px rgba(255, 167, 38, 0.4);
+}
+
+.difficulty-hard:hover {
+    border-color: #ef5350;
+    box-shadow: 0 5px 20px rgba(239, 83, 80, 0.4);
+}
+
+.difficulty-emoji {
+    font-size: 32px;
+}
+
+.difficulty-text {
+    font-size: 24px;
+}
+
+.close-difficulty-modal {
+    color: rgba(255, 255, 255, 0.6);
+    float: left;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 1;
+}
+
+.close-difficulty-modal:hover {
+    color: white;
+    transform: scale(1.2);
+}
+
+@@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>
+
+<script>
+function openImageModal() {
+    var modal = document.getElementById('image-modal');
+    var modalImg = document.getElementById('modal-img');
+    var mainImg = document.getElementById('main-question-image');
+    modal.style.display = 'flex';
+    modalImg.src = mainImg.src;
+}
+function closeImageModal() {
+    document.getElementById('image-modal').style.display = 'none';
+}
+
+// Difficulty Modal Functions
+function openDifficultyModal() {
+    document.getElementById('difficulty-modal').style.display = 'block';
+}
+function closeDifficultyModal() {
+    document.getElementById('difficulty-modal').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Image modal click outside to close
+    var modal = document.getElementById('image-modal');
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeImageModal();
+    });
+    
+    // Difficulty modal click outside to close
+    var diffModal = document.getElementById('difficulty-modal');
+    diffModal.addEventListener('click', function (e) {
+        if (e.target === diffModal) closeDifficultyModal();
+    });
+});
+</script>
+
+<div style="display: flex; flex-direction: column; align-items: center; margin-top: 32px;">
+    <form id="report-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 400px; width: 100%;">
+        <input type="hidden" name="questionImage" value="@(Model.QuestionImageOriginalName ?? Model.QuestionImage)" />
+        <input type="hidden" name="answersJson" value='@Newtonsoft.Json.JsonConvert.SerializeObject(Model.AnswerImageOriginalNames ?? Model.ShuffledAnswers)' />
+        <input type="hidden" name="correctAnswer" value='@((Model.AnswerImageOriginalNames != null && Model.AnswerImageOriginalNames.ContainsKey("correct")) ? Model.AnswerImageOriginalNames["correct"] : (Model.ShuffledAnswers != null && Model.ShuffledAnswers.ContainsKey("correct") ? Model.ShuffledAnswers["correct"] : ""))' />
+        <input type="hidden" name="selectedAnswer" value="@Model.SelectedAnswer" />
+        <label for="explanation" style="font-weight: bold;">יש טעות בשאלה? דווח לנו</label>
+        <textarea name="explanation" id="explanation" required placeholder="נא לפרט מה לא תקין..." style="width: 100%; min-height: 60px; border-radius: 8px; border: 1px solid #ccc; padding: 8px; font-size: 16px;"></textarea>
+        <button type="submit" class="next-question-btn" style="background-color: #ff9800; color: #222; font-size: 20px; padding: 12px 32px;">דווח על טעות בשאלה</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('report-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key === 'answersJson') {
+                data['answers'] = value;
+            } else {
+                data[key] = value;
+            }
+        });
+
+        try {
+            const res = await fetch('/Index?handler=ReportError', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('הדיווח נשלח בהצלחה!');
+                form.reset();
+            } else {
+                alert('אירעה שגיאה בשליחת הדיווח.');
+            }
+        } catch (err) {
+            alert('אירעה שגיאה בשליחת הדיווח.');
+        }
+    });
+});
+</script>
+
+<div id="stats-toggle" onclick="toggleStats()">⬆️</div>
+
+<div id="stats-panel" class="hidden">
+    <h3>📊 סטטיסטיקה אישית</h3>
+    <ul>
+        <li>✅ תשובות נכונות: <span id="stat-correct">0</span></li>
+        <li>📋 שאלות שנענו: <span id="stat-total">0</span></li>
+        <li>📈 אחוז הצלחה: <span id="stat-success">0%</span></li>
+    </ul>
+</div>
+
+<script>
+let updateInterval;
+
+async function fetchStats() {
+    try {
+        const res = await fetch('/Stats?_=' + new Date().getTime());
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        // Only update if we have valid data
+        if (data && data.correct !== undefined) {
+            document.getElementById('stat-correct').innerText = data.correct;
+            document.getElementById('stat-total').innerText = data.total;
+            document.getElementById('stat-success').innerText = data.successRate + '%';
+        }
+        if (data && data.online !== undefined && data.online !== null) {
+            document.getElementById('online-count').innerText = data.online;
+        }
+    } catch (e) {
+        console.warn("Failed to fetch stats:", e);
+        // Don't clear the stats on error, just keep the current values
+    }
+}
+
+async function fetchOnlineCount() {
+    try {
+        const res = await fetch('/api/online-count?_=' + new Date().getTime());
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        // Only update if we have valid data
+        if (data && data.online !== undefined && data.online !== null) {
+            document.getElementById('online-count').innerText = data.online;
+        } else {
+            console.warn("Invalid online count data received");
+        }
+    } catch (e) {
+        console.warn("Failed to fetch online count:", e);
+        // Don't clear the count on error, just keep the current value
+    }
+}
+
+function toggleStats() {
+    const panel = document.getElementById('stats-panel');
+    const toggle = document.getElementById('stats-toggle');
+    const isOpen = !panel.classList.contains('hidden');
+    panel.classList.toggle('hidden');
+    toggle.innerText = isOpen ? '⬆️' : '⬇️';
+    if (!isOpen) {
+        fetchStats();
+        fetchOnlineCount();
+    }
+}
+
+// Start auto-update every 5 seconds for stats
+function startAutoUpdate() {
+    updateInterval = setInterval(() => {
+        fetchStats();
+        fetchOnlineCount();
+    }, 5000);
+}
+
+// Stop auto-update
+function stopAutoUpdate() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+}
+
+// Start updates when page loads
+window.addEventListener("load", () => {
+    fetchStats(); // Initial load
+    fetchOnlineCount();
+    startAutoUpdate();
+});
+
+// Stop updates when page is hidden (to save resources)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        stopAutoUpdate();
+    } else {
+        startAutoUpdate();
+    }
+});
+</script>
+
+<!-- removed devtools cheat warning script for code cleanup -->

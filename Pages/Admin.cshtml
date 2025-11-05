@@ -254,6 +254,32 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// Search questions by name
+function searchQuestions() {
+    const searchInput = document.getElementById('question-search').value.toLowerCase();
+    const rows = document.querySelectorAll('.difficulty-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const questionName = row.querySelector('td:first-child').textContent.toLowerCase();
+        const matchesSearch = questionName.includes(searchInput);
+        const matchesFilter = !currentFilter || row.getAttribute('data-difficulty') === currentFilter;
+        
+        if (matchesSearch && matchesFilter) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Update count
+    const countEl = document.getElementById('difficulty-count');
+    if (countEl) {
+        countEl.textContent = `מציג ${visibleCount} שאלות`;
+    }
+}
+
 // Difficulty filtering functionality
 let currentFilter = null;
 
@@ -265,9 +291,7 @@ function filterByDifficulty(difficulty) {
     // Toggle: if clicking the same difficulty, show all
     if (currentFilter === difficulty) {
         currentFilter = null;
-        rows.forEach(row => row.style.display = '');
         titleEl.textContent = 'רשימת שאלות (מעודכן אוטומטית)';
-        countEl.textContent = `מציג את כל ${rows.length} השאלות`;
         
         // Reset card styles
         document.getElementById('difficulty-card-easy').style.opacity = '1';
@@ -275,26 +299,18 @@ function filterByDifficulty(difficulty) {
         document.getElementById('difficulty-card-hard').style.opacity = '1';
     } else {
         currentFilter = difficulty;
-        let visibleCount = 0;
         
-        rows.forEach(row => {
-            if (row.getAttribute('data-difficulty') === difficulty) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : 'קשות';
-        titleEl.textContent = `שאלות ${diffText} (${visibleCount} שאלות)`;
-        countEl.textContent = `מציג ${visibleCount} שאלות ${diffText}`;
+        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : difficulty === 'hard' ? 'קשות' : 'לא מדורגות';
+        titleEl.textContent = `שאלות ${diffText}`;
         
         // Highlight active card
         document.getElementById('difficulty-card-easy').style.opacity = difficulty === 'easy' ? '1' : '0.5';
         document.getElementById('difficulty-card-medium').style.opacity = difficulty === 'medium' ? '1' : '0.5';
         document.getElementById('difficulty-card-hard').style.opacity = difficulty === 'hard' ? '1' : '0.5';
     }
+    
+    // Re-run search to apply both filters
+    searchQuestions();
 }
 </script>
 
@@ -353,6 +369,18 @@ function filterByDifficulty(difficulty) {
     @if (Model.DifficultyQuestions.Any())
     {
         <h4 id="difficulty-title" style="margin: 20px 0 10px 0;">רשימת שאלות (מעודכן אוטומטית)</h4>
+        
+        <!-- Search Box -->
+        <div style="margin: 10px 0;">
+            <input type="text" 
+                   id="question-search" 
+                   placeholder="🔍 חפש שאלה לפי שם..." 
+                   onkeyup="searchQuestions()"
+                   style="width: 100%; padding: 10px; background: #111; border: 2px solid #444; border-radius: 6px; color: white; font-size: 14px; text-align: right;"
+                   onfocus="this.style.borderColor='#00bcd4'"
+                   onblur="this.style.borderColor='#444'">
+        </div>
+        
         <div id="difficulty-table-container" style="max-height: 400px; overflow-y: auto; background: #111; padding: 15px; border-radius: 8px;">
             <table style="width: 100%; font-size: 13px;">
                 <thead style="position: sticky; top: 0; background: #222; z-index: 10;">
@@ -373,13 +401,15 @@ function filterByDifficulty(difficulty) {
                             "easy" => "#4caf50",
                             "medium" => "#ffa726",
                             "hard" => "#ef5350",
+                            "unrated" => "#666",
                             _ => "#999"
                         };
                         var diffText = q.Difficulty switch
                         {
-                            "easy" => "קל",
-                            "medium" => "בינוני",
-                            "hard" => "קשה",
+                            "easy" => "קל 🟢",
+                            "medium" => "בינוני 🟡",
+                            "hard" => "קשה 🔴",
+                            "unrated" => "לא מדורג ⚪",
                             _ => q.Difficulty
                         };
                         
@@ -398,7 +428,8 @@ function filterByDifficulty(difficulty) {
                                 </span>
                             </td>
                             <td>
-                                <span style="background: @diffColor; padding: 5px 12px; border-radius: 15px; font-weight: bold; color: white;">
+                                <span style="background: @diffColor; padding: 5px 12px; border-radius: 15px; font-weight: bold; color: white;" 
+                                      title="@(q.TotalAttempts < 5 ? "דרושים 5 ניסיונות לפחות לדירוג" : "")">
                                     @diffText
                                 </span>
                             </td>

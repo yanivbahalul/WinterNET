@@ -42,7 +42,8 @@ CREATE INDEX IF NOT EXISTS idx_question_difficulties_success_rate ON question_di
 CREATE INDEX IF NOT EXISTS idx_question_difficulties_last_updated ON question_difficulties(LastUpdated DESC);
 
 -- Function to automatically recalculate all difficulties based on success rate
--- Rules: easy >= 65%, medium 35-65%, hard < 35%
+-- Rules: easy >= 70%, medium 40-70%, hard < 40%
+-- Only applies to questions with 5+ attempts (otherwise remains 'unrated')
 CREATE OR REPLACE FUNCTION recalculate_all_difficulties()
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -53,8 +54,9 @@ BEGIN
     UPDATE question_difficulties
     SET 
         Difficulty = CASE
-            WHEN SuccessRate >= 65 THEN 'easy'
-            WHEN SuccessRate >= 35 THEN 'medium'
+            WHEN TotalAttempts < 5 THEN 'unrated'
+            WHEN SuccessRate >= 70 THEN 'easy'
+            WHEN SuccessRate >= 40 THEN 'medium'
             ELSE 'hard'
         END,
         LastUpdated = CURRENT_TIMESTAMP

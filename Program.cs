@@ -220,6 +220,64 @@ app.MapGet("/api/dashboard-data", async context =>
     }
 });
 
+// 🎯 Initialize question difficulties with all images from Storage
+app.MapGet("/api/init-question-difficulties", async context =>
+{
+    try
+    {
+        var storage = context.RequestServices.GetService<SupabaseStorageService>();
+        var difficultyService = context.RequestServices.GetService<QuestionDifficultyService>();
+        
+        if (storage == null || difficultyService == null)
+        {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsync("Required services not available");
+            return;
+        }
+
+        // Get all images from storage
+        var allImages = await storage.ListFilesAsync();
+        Console.WriteLine($"🎯 Found {allImages.Count} images in storage. Initializing question difficulties...");
+        
+        int created = 0;
+        int skipped = 0;
+        
+        foreach (var imageName in allImages)
+        {
+            // Check if already exists
+            var existing = await difficultyService.GetQuestionDifficulty(imageName);
+            if (existing != null)
+            {
+                skipped++;
+                continue;
+            }
+            
+            // Create with default values
+            bool success = await difficultyService.UpdateQuestionStats(imageName, isCorrect: false);
+            if (success)
+            {
+                created++;
+                if (created % 50 == 0)
+                {
+                    Console.WriteLine($"✅ Initialized {created}/{allImages.Count}...");
+                }
+            }
+        }
+        
+        Console.WriteLine($"✅ Initialization complete: {created} created, {skipped} already existed");
+        
+        var response = new { created, skipped, total = allImages.Count };
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Init Difficulties Error] {ex}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync($"Error: {ex.Message}");
+    }
+});
+
 // 📤 Upload images to Supabase Storage (Admin only)
 app.MapGet("/api/upload-images", async context =>
 {

@@ -80,6 +80,22 @@
     </ul>
 
     <h2>🎯 סטטיסטיקת שאלות לפי רמת קושי</h2>
+    
+    @if (Model.QuestionDifficulties == null || !Model.QuestionDifficulties.Any())
+    {
+        <div style="background-color: rgba(255, 193, 7, 0.2); border: 2px solid #ffc107; border-radius: 6px; padding: 15px; margin: 15px 0; text-align: center;">
+            <p style="color: #ffc107; font-weight: bold; margin-bottom: 10px;">⚠️ טבלת קושי השאלות ריקה</p>
+            <p style="font-size: 14px; margin-bottom: 15px;">לחץ על הכפתור למטה כדי לאתחל את כל 700 השאלות עם ערכי ברירת מחדל</p>
+            <a href="/api/init-question-difficulties" target="_blank" 
+               style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--electric-blue), var(--cerulean)); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s;"
+               onmouseover="this.style.transform='scale(1.05)'" 
+               onmouseout="this.style.transform='scale(1)'">
+                🎯 אתחל טבלת קושי שאלות
+            </a>
+            <p style="font-size: 12px; color: #888; margin-top: 10px;">זה ייצור רשומה לכל שאלה עם ערכים: medium, 0%, 0 ניסיונות</p>
+        </div>
+    }
+    
     @if (Model.QuestionDifficulties != null && Model.QuestionDifficulties.Any())
     {
         var easyQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "easy").ToList();

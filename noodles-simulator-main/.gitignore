@@ -1,8 +1,0 @@
-bin/
-obj/
-out/
-
-# Data files (stored in persistent storage in production)
-wwwroot/reports/*.json
-wwwroot/progress/*.json
-progress/*.json 

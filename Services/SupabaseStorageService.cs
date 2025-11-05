@@ -153,13 +153,13 @@ namespace HelloWorldWeb.Services
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
                 request.Headers.Add("apikey", _serviceRoleKey);
                 
-                // Build request body
+                // Build request body - prefix is required!
                 var requestBody = new
                 {
                     limit = 1000,
                     offset = 0,
                     sortBy = new { column = "name", order = "asc" },
-                    search = prefix ?? ""
+                    prefix = prefix ?? ""
                 };
                 var jsonBody = JsonSerializer.Serialize(requestBody);
                 Console.WriteLine($"[Storage] Request body: {jsonBody}");

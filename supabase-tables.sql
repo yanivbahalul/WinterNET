@@ -99,7 +99,32 @@ CREATE TRIGGER trigger_update_question_difficulties_timestamp
     FOR EACH ROW
     EXECUTE FUNCTION update_question_difficulties_timestamp();
 
--- Grant necessary permissions (adjust based on your Supabase setup)
--- GRANT ALL ON test_sessions TO authenticated;
--- GRANT ALL ON question_difficulties TO authenticated;
+-- Enable Row Level Security
+ALTER TABLE test_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE question_difficulties ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for test_sessions
+-- Allow service_role full access
+CREATE POLICY IF NOT EXISTS "Service role full access to test_sessions"
+ON test_sessions
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- RLS Policies for question_difficulties
+-- Allow service_role full access
+CREATE POLICY IF NOT EXISTS "Service role full access to question_difficulties"
+ON question_difficulties
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- Optional: Allow public read access to question difficulties
+CREATE POLICY IF NOT EXISTS "Public read access to question_difficulties"
+ON question_difficulties
+FOR SELECT
+TO anon, authenticated
+USING (true);
 

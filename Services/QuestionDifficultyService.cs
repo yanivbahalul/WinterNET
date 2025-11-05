@@ -29,10 +29,10 @@ namespace HelloWorldWeb.Services
         private readonly string _url;
         private readonly string _apiKey;
         
-        // Cache for performance (30 minutes for better performance)
+        // Cache for performance (2 hours for better performance)
         private Dictionary<string, string>? _difficultyCache;
         private DateTime _cacheExpiry = DateTime.MinValue;
-        private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(30);
+        private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(2);
 
         public QuestionDifficultyService(IConfiguration config)
         {
@@ -54,22 +54,13 @@ namespace HelloWorldWeb.Services
         {
             try
             {
-                var res = await _client.GetAsync(
-                    $"{_url}/rest/v1/question_difficulties?Difficulty=eq.{difficulty}&select=QuestionFile"
-                );
+                // Use cache for better performance
+                var allDifficulties = await GetAllDifficultiesMap();
                 
-                if (!res.IsSuccessStatusCode)
-                {
-                    return new List<string>();
-                }
-
-                var json = await res.Content.ReadAsStringAsync();
-                var items = JsonSerializer.Deserialize<List<QuestionDifficulty>>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-                
-                return items?.Select(q => q.QuestionFile).ToList() ?? new List<string>();
+                return allDifficulties
+                    .Where(kvp => kvp.Value == difficulty)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
             }
             catch (Exception ex)
             {

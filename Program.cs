@@ -47,8 +47,8 @@ builder.Services.AddSingleton<QuestionStatsService>(sp =>
 // Test Session Service (Supabase)
 builder.Services.AddScoped<TestSessionService>();
 
-// Question Difficulty Service (Supabase)
-builder.Services.AddScoped<QuestionDifficultyService>();
+// Question Difficulty Service (Supabase) - Singleton for better caching
+builder.Services.AddSingleton<QuestionDifficultyService>();
 
 // Supabase Storage Service (optional - if using Supabase for images)
 builder.Services.AddSingleton<SupabaseStorageService>(sp =>
@@ -88,6 +88,27 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 builder.Logging.ClearProviders();
 
 var app = builder.Build();
+
+// 🚀 Preload cache for better performance on first requests
+Task.Run(async () =>
+{
+    try
+    {
+        var storage = app.Services.GetService<SupabaseStorageService>();
+        var difficultyService = app.Services.GetService<QuestionDifficultyService>();
+        
+        if (storage != null)
+        {
+            _ = await storage.ListFilesAsync(); // Preload files list
+        }
+        
+        if (difficultyService != null)
+        {
+            _ = await difficultyService.GetAllDifficultiesMap(); // Preload difficulties
+        }
+    }
+    catch { /* Ignore preload errors */ }
+});
 
 app.UseResponseCompression(); // Enable compression first
 app.UseHttpsRedirection();

@@ -52,8 +52,8 @@ namespace HelloWorldWeb.Pages
             {
                 if (_difficultyService != null)
                 {
-                    // Auto-recalculate difficulties to ensure they're always up-to-date
-                    await _difficultyService.RecalculateAllDifficulties();
+                    // Don't recalculate on every page load - it's expensive!
+                    // Recalculation happens automatically when questions are answered
                     
                     // Load ALL questions (no limit)
                     DifficultyQuestions = await _difficultyService.GetAllQuestions(1000);

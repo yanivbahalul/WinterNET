@@ -19,7 +19,7 @@ namespace HelloWorldWeb.Services
         private bool _initialized;
         private List<string> _listCache;
         private DateTime _listCacheAt;
-        private readonly TimeSpan _listTtl = TimeSpan.FromMinutes(5);
+        private readonly TimeSpan _listTtl = TimeSpan.FromHours(1); // Increased from 5 minutes to 1 hour
         private readonly ConcurrentDictionary<string, (string url, DateTime cachedAt)> _signedUrlCache = new();
         private readonly TimeSpan _signedUrlTtl;
         private readonly string _supabaseUrl;

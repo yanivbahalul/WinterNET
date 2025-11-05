@@ -422,24 +422,23 @@ namespace HelloWorldWeb.Pages
                 var allowedQuestions = await LoadDifficultyQuestionsAsync(difficulty);
                 if (allowedQuestions != null && allowedQuestions.Any())
                 {
+                    // Create dictionary for O(1) lookup instead of O(n) for each question
+                    var imageIndexDict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                    for (int i = 0; i < allImages.Count; i++)
+                    {
+                        imageIndexDict[allImages[i]] = i;
+                        imageIndexDict[allImages[i].Trim()] = i; // Also add trimmed version
+                    }
+                    
                     foreach (var questionFile in allowedQuestions)
                     {
                         if (string.IsNullOrWhiteSpace(questionFile))
                             continue;
                         
-                        int idx = allImages.IndexOf(questionFile);
-                        
-                        if (idx < 0)
+                        // Try to find index using dictionary (much faster)
+                        if (!imageIndexDict.TryGetValue(questionFile, out int idx))
                         {
-                            idx = allImages.FindIndex(img => 
-                                string.Equals(img, questionFile, StringComparison.OrdinalIgnoreCase));
-                        }
-                        
-                        if (idx < 0)
-                        {
-                            var trimmed = questionFile.Trim();
-                            idx = allImages.FindIndex(img => 
-                                img.Trim().Equals(trimmed, StringComparison.OrdinalIgnoreCase));
+                            imageIndexDict.TryGetValue(questionFile.Trim(), out idx);
                         }
                         
                         if (idx >= 0 && idx + 4 < allImages.Count)

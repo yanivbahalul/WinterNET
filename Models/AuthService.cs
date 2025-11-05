@@ -50,6 +50,16 @@ namespace HelloWorldWeb.Models
         private readonly IConfiguration _configuration;
         private readonly string _usersFilePath;
         private const string TABLE_NAME = "WinterUsers";
+        
+        // Cache for GetAllUsers to reduce DB queries
+        private List<User>? _usersCache;
+        private DateTime _usersCacheExpiry = DateTime.MinValue;
+        private readonly TimeSpan _usersCacheDuration = TimeSpan.FromSeconds(10);
+        
+        // Cache for online count
+        private int _onlineCountCache = 0;
+        private DateTime _onlineCountCacheExpiry = DateTime.MinValue;
+        private readonly TimeSpan _onlineCountCacheDuration = TimeSpan.FromSeconds(5);
 
         public AuthService(IConfiguration configuration)
         {
@@ -163,6 +173,9 @@ namespace HelloWorldWeb.Models
 
         public async Task UpdateUser(User updatedUser)
         {
+            // Invalidate cache when user is updated
+            _usersCache = null;
+            
             // Try Supabase first
             if (_supabase != null)
             {
@@ -258,6 +271,17 @@ namespace HelloWorldWeb.Models
 
         public async Task<List<User>> GetAllUsers(int? limit = null, List<string>? columns = null)
         {
+            // Check cache first
+            if (_usersCache != null && DateTime.UtcNow < _usersCacheExpiry)
+            {
+                var cachedUsers = _usersCache;
+                if (limit.HasValue && limit.Value > 0)
+                {
+                    return cachedUsers.Take(limit.Value).ToList();
+                }
+                return new List<User>(cachedUsers);
+            }
+            
             // Try Supabase first
             if (_supabase != null)
             {
@@ -265,9 +289,12 @@ namespace HelloWorldWeb.Models
                 {
                     var response = await _supabase.From<User>().Get();
                     
-                    // Apply limit and column filtering in memory
-                    var users = response.Models;
+                    // Cache the result
+                    _usersCache = response.Models.ToList();
+                    _usersCacheExpiry = DateTime.UtcNow.Add(_usersCacheDuration);
                     
+                    // Apply limit
+                    var users = _usersCache;
                     if (limit.HasValue && limit.Value > 0)
                     {
                         users = users.Take(limit.Value).ToList();
@@ -359,10 +386,21 @@ namespace HelloWorldWeb.Models
 
         public async Task<int> GetOnlineUserCount()
         {
+            // Check cache first
+            if (DateTime.UtcNow < _onlineCountCacheExpiry)
+            {
+                return _onlineCountCache;
+            }
+            
             try
             {
                 var users = await GetAllUsers();
                 var count = users.Count(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5));
+                
+                // Cache the result
+                _onlineCountCache = count;
+                _onlineCountCacheExpiry = DateTime.UtcNow.Add(_onlineCountCacheDuration);
+                
                 return count;
             }
             catch (Exception ex)

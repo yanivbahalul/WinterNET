@@ -161,7 +161,7 @@ namespace HelloWorldWeb.Pages
                 {
                     await _difficultyService.UpdateQuestionStats(questionImage, IsCorrect);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -272,7 +272,7 @@ namespace HelloWorldWeb.Pages
                         .OrderBy(name => name)
                         .ToList();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     allImages = LoadLocalImages();
                 }
@@ -332,7 +332,7 @@ namespace HelloWorldWeb.Pages
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     UseLocalPaths(chosen, answersList);
                 }
@@ -398,7 +398,7 @@ namespace HelloWorldWeb.Pages
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     UseLocalPathsForAnswers(questionImg, answers);
                 }

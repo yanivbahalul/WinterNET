@@ -62,7 +62,7 @@ namespace HelloWorldWeb.Services
                     .Select(kvp => kvp.Key)
                     .ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new List<string>();
             }
@@ -98,7 +98,7 @@ namespace HelloWorldWeb.Services
                 _cacheExpiry = DateTime.UtcNow.Add(_cacheDuration);
                 return _difficultyCache;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new Dictionary<string, string>();
             }
@@ -165,7 +165,7 @@ namespace HelloWorldWeb.Services
                     return await UpdateQuestionDifficulty(existing);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -190,7 +190,7 @@ namespace HelloWorldWeb.Services
                 
                 return items?.FirstOrDefault();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -215,7 +215,7 @@ namespace HelloWorldWeb.Services
                 
                 return await CreateQuestionDifficulty(newRecord);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -245,7 +245,7 @@ namespace HelloWorldWeb.Services
                 
                 return res.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -282,7 +282,7 @@ namespace HelloWorldWeb.Services
                 
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -316,7 +316,7 @@ namespace HelloWorldWeb.Services
                 
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -341,7 +341,7 @@ namespace HelloWorldWeb.Services
                 
                 return 0;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return 0;
             }
@@ -366,7 +366,7 @@ namespace HelloWorldWeb.Services
                     PropertyNameCaseInsensitive = true
                 }) ?? new List<QuestionDifficulty>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new List<QuestionDifficulty>();
             }

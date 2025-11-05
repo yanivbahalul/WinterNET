@@ -102,7 +102,7 @@ namespace HelloWorldWeb.Services
 
                 return session;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -126,7 +126,7 @@ namespace HelloWorldWeb.Services
                 
                 return sessions?.FirstOrDefault();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -162,7 +162,7 @@ namespace HelloWorldWeb.Services
                 
                 return session;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -203,7 +203,7 @@ namespace HelloWorldWeb.Services
                 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -231,7 +231,7 @@ namespace HelloWorldWeb.Services
                 var response = await _client.SendAsync(request);
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -258,7 +258,7 @@ namespace HelloWorldWeb.Services
                 
                 return sessions ?? new List<TestSession>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new List<TestSession>();
             }

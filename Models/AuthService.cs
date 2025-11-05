@@ -103,7 +103,7 @@ namespace HelloWorldWeb.Models
 
                     return response;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -146,7 +146,7 @@ namespace HelloWorldWeb.Models
                 await _supabase.From<User>().Insert(newUser);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -203,7 +203,7 @@ namespace HelloWorldWeb.Models
                     
                     return;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -219,7 +219,7 @@ namespace HelloWorldWeb.Models
                     await SaveUsersLocal(users);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -241,7 +241,7 @@ namespace HelloWorldWeb.Models
                     
                     return response.Models.ToList();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Fallback: if the optimized query fails, use the old approach
                     try
@@ -254,7 +254,7 @@ namespace HelloWorldWeb.Models
                             .ToList();
                         return sortedUsers;
                     }
-                    catch (Exception ex2)
+                    catch (Exception)
                     {
                     }
                 }
@@ -302,7 +302,7 @@ namespace HelloWorldWeb.Models
                     
                     return users;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -330,7 +330,7 @@ namespace HelloWorldWeb.Models
                     .Delete();
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -366,7 +366,7 @@ namespace HelloWorldWeb.Models
                 }
                 return new List<User>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new List<User>();
             }
@@ -379,7 +379,7 @@ namespace HelloWorldWeb.Models
                 var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
                 await File.WriteAllTextAsync(_usersFilePath, json);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -403,7 +403,7 @@ namespace HelloWorldWeb.Models
                 
                 return count;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return 0;
             }

@@ -474,7 +474,7 @@ namespace HelloWorldWeb.Pages
                 
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

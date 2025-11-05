@@ -250,7 +250,7 @@ namespace HelloWorldWeb.Services
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -90,7 +91,7 @@ builder.Logging.ClearProviders();
 var app = builder.Build();
 
 // 🚀 Preload cache for better performance on first requests
-Task.Run(async () =>
+_ = Task.Run(async () =>
 {
     try
     {
@@ -347,7 +348,7 @@ app.MapGet("/api/upload-images", async context =>
                     uploaded++;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 failed++;
             }
@@ -381,7 +382,7 @@ if (Directory.Exists(progressDir))
             {
                 File.Delete(file);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }

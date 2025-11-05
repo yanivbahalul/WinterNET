@@ -62,7 +62,7 @@ namespace HelloWorldWeb.Pages
                     HardCount = DifficultyQuestions.Count(q => q.Difficulty == "hard");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 DifficultyQuestions = new List<QuestionDifficulty>();
             }
@@ -83,7 +83,7 @@ namespace HelloWorldWeb.Pages
                     .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
                     .DefaultIfEmpty(0).Average() * 100;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Cheaters = new List<User>();
                 BannedUsers = new List<User>();

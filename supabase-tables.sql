@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_question_difficulties_last_updated ON question_di
 
 -- Function to automatically recalculate all difficulties based on success rate
 -- Rules: easy >= 70%, medium 40-70%, hard < 40%
--- Only applies to questions with 5+ attempts (otherwise remains 'unrated')
+-- Questions with 0 attempts remain 'unrated'
 CREATE OR REPLACE FUNCTION recalculate_all_difficulties()
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -53,14 +53,14 @@ DECLARE
 BEGIN
     UPDATE question_difficulties
     SET 
-        Difficulty = CASE
-            WHEN TotalAttempts < 5 THEN 'unrated'
-            WHEN SuccessRate >= 70 THEN 'easy'
-            WHEN SuccessRate >= 40 THEN 'medium'
+        "Difficulty" = CASE
+            WHEN "TotalAttempts" = 0 THEN 'unrated'
+            WHEN "SuccessRate" >= 70 THEN 'easy'
+            WHEN "SuccessRate" >= 40 THEN 'medium'
             ELSE 'hard'
         END,
-        LastUpdated = CURRENT_TIMESTAMP
-    WHERE ManualOverride = FALSE;
+        "LastUpdated" = CURRENT_TIMESTAMP
+    WHERE "ManualOverride" = FALSE;
     
     GET DIAGNOSTICS updated_count = ROW_COUNT;
     RETURN updated_count;

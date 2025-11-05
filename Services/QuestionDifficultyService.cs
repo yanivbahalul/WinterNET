@@ -14,7 +14,7 @@ namespace HelloWorldWeb.Services
     public class QuestionDifficulty
     {
         public string QuestionFile { get; set; } = string.Empty;
-        public string Difficulty { get; set; } = "medium";
+        public string Difficulty { get; set; } = "unrated"; // Default: no rating until first attempt
         public decimal SuccessRate { get; set; } = 0;
         public int TotalAttempts { get; set; } = 0;
         public int CorrectAttempts { get; set; } = 0;

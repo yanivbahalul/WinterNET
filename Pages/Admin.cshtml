@@ -300,7 +300,7 @@ function filterByDifficulty(difficulty) {
     } else {
         currentFilter = difficulty;
         
-        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : 'קשות';
+        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : difficulty === 'hard' ? 'קשות' : 'לא מדורגות';
         titleEl.textContent = `שאלות ${diffText}`;
         
         // Highlight active card
@@ -401,6 +401,7 @@ function filterByDifficulty(difficulty) {
                             "easy" => "#4caf50",
                             "medium" => "#ffa726",
                             "hard" => "#ef5350",
+                            "unrated" => "#666",
                             _ => "#999"
                         };
                         var diffText = q.Difficulty switch
@@ -408,6 +409,7 @@ function filterByDifficulty(difficulty) {
                             "easy" => "קל 🟢",
                             "medium" => "בינוני 🟡",
                             "hard" => "קשה 🔴",
+                            "unrated" => "לא מדורג ⚪",
                             _ => q.Difficulty
                         };
                         

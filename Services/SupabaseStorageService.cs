@@ -149,17 +149,22 @@ namespace HelloWorldWeb.Services
 
                 try
                 {
+                    Console.WriteLine($"[Storage] Calling from.List with limit={limit}, offset={offset}");
                     var page = await from.List(prefix, options);
                     
                     if (page == null)
                     {
                         Console.WriteLine($"[Storage] List returned null at offset {offset}");
+                        Console.WriteLine($"[Storage] WARNING: This might be a permissions issue. Check if service_role key is used and bucket is accessible.");
                         break;
                     }
+                    
+                    Console.WriteLine($"[Storage] List returned page with Count={page.Count}");
                     
                     if (page.Count == 0)
                     {
                         Console.WriteLine($"[Storage] No more files at offset {offset}. Total fetched: {totalFetched}");
+                        Console.WriteLine($"[Storage] If this is offset 0, the bucket might be empty, have wrong permissions, or service_role key is not being used.");
                         break;
                     }
                     

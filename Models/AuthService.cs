@@ -233,31 +233,39 @@ namespace HelloWorldWeb.Models
             {
                 try
                 {
-                    Console.WriteLine($"[GetTopUsers] Fetching top {count} users from Supabase");
-                    
-                    // Get all users and sort in memory (simpler approach)
+                    // Use Supabase's built-in ordering and limiting for better performance
                     var response = await _supabase
                         .From<User>()
+                        .Order("CorrectAnswers", Supabase.Postgrest.Constants.Ordering.Descending)
+                        .Order("TotalAnswered", Supabase.Postgrest.Constants.Ordering.Ascending)
+                        .Limit(count)
                         .Get();
                     
-                    // Sort by CorrectAnswers descending, then by TotalAnswered ascending
-                    var sortedUsers = response.Models
-                        .OrderByDescending(u => u.CorrectAnswers)
-                        .ThenBy(u => u.TotalAnswered)
-                        .Take(count)
-                        .ToList();
-                    
-                    Console.WriteLine($"[GetTopUsers] Retrieved {sortedUsers.Count} top users from Supabase");
-                    return sortedUsers;
+                    return response.Models.ToList();
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[GetTopUsers] Supabase error: {ex.Message}");
+                    Console.WriteLine($"[GetTopUsers] Error: {ex.Message}");
+                    
+                    // Fallback: if the optimized query fails, use the old approach
+                    try
+                    {
+                        var response = await _supabase.From<User>().Get();
+                        var sortedUsers = response.Models
+                            .OrderByDescending(u => u.CorrectAnswers)
+                            .ThenBy(u => u.TotalAnswered)
+                            .Take(count)
+                            .ToList();
+                        return sortedUsers;
+                    }
+                    catch (Exception ex2)
+                    {
+                        Console.WriteLine($"[GetTopUsers] Fallback error: {ex2.Message}");
+                    }
                 }
             }
             
             // Fallback to local storage
-            Console.WriteLine("[GetTopUsers] Using local storage fallback");
             var allUsers = await GetAllUsersLocal();
             return allUsers
                 .OrderByDescending(u => u.CorrectAnswers)

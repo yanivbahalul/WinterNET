@@ -13,6 +13,24 @@ using HelloWorldWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Response Compression for better performance
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = new[]
+    {
+        "text/html",
+        "text/css",
+        "text/javascript",
+        "application/javascript",
+        "application/json",
+        "image/svg+xml"
+    };
+});
+
+// Memory Cache for admin data
+builder.Services.AddMemoryCache();
+
 // Razor Pages + Session
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor(); 
@@ -73,6 +91,7 @@ builder.Logging.ClearProviders();
 
 var app = builder.Build();
 
+app.UseResponseCompression(); // Enable compression first
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

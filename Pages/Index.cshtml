@@ -31,7 +31,7 @@
 <!-- כפתור טבלת מובילים + ניהול -->
 <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; gap: 10px; flex-wrap: wrap;">
     <a href="/Leaderboard" class="next-question-btn">🏆 מובילים</a>
-    <a href="/Test?start=1" class="next-question-btn" style="background-color: #C14953;">🧪 מבחן</a>
+    <button type="button" onclick="openDifficultyModal()" class="next-question-btn" style="background-color: #C14953;">🧪 מבחן</button>
     <a href="/MyExams" class="next-question-btn" style="background-color: #2A2E45;">📚 מבחנים</a>
     @if (Model.Username == "Admin")
     {
@@ -259,4 +259,177 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 })();
+
+// Difficulty Modal Functions
+function openDifficultyModal() {
+    document.getElementById('difficulty-modal').style.display = 'block';
+}
+
+function closeDifficultyModal() {
+    document.getElementById('difficulty-modal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('difficulty-modal');
+    if (event.target == modal) {
+        closeDifficultyModal();
+    }
+}
 </script>
+
+<!-- Difficulty Selection Modal -->
+<div id="difficulty-modal" class="difficulty-modal" style="display:none;">
+    <div class="difficulty-modal-content">
+        <span class="close-difficulty-modal" onclick="closeDifficultyModal()">&times;</span>
+        <h2 style="text-align: center; color: var(--rojo); margin-bottom: 30px; font-size: 32px; text-shadow: 0 0 15px var(--rojo); font-family: 'Courier New', monospace;">בחר רמת קושי</h2>
+        <div class="difficulty-buttons">
+            <a href="/Test?start=1&difficulty=easy" class="difficulty-btn difficulty-easy">
+                <span class="difficulty-emoji">🟢</span>
+                <span class="difficulty-text">קל (Easy)</span>
+                <span class="difficulty-desc">≥65% הצלחה</span>
+            </a>
+            <a href="/Test?start=1&difficulty=medium" class="difficulty-btn difficulty-medium">
+                <span class="difficulty-emoji">🟡</span>
+                <span class="difficulty-text">בינוני (Medium)</span>
+                <span class="difficulty-desc">35-65% הצלחה</span>
+            </a>
+            <a href="/Test?start=1&difficulty=hard" class="difficulty-btn difficulty-hard">
+                <span class="difficulty-emoji">🔴</span>
+                <span class="difficulty-text">קשה (Hard)</span>
+                <span class="difficulty-desc">&lt;35% הצלחה</span>
+            </a>
+            <a href="/Test?start=1" class="difficulty-btn difficulty-all">
+                <span class="difficulty-emoji">⚪</span>
+                <span class="difficulty-text">כל הרמות</span>
+                <span class="difficulty-desc">מבחן מעורב</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Difficulty Modal Styles - WinterNET Theme */
+.difficulty-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(11, 0, 20, 0.95);
+    animation: fadeIn 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+.difficulty-modal-content {
+    background: rgba(11, 0, 20, 0.95);
+    border: 2px solid var(--bittersweet-shimmer);
+    margin: 10% auto;
+    padding: 40px;
+    border-radius: 8px;
+    max-width: 500px;
+    box-shadow: 0 0 50px rgba(193, 73, 83, 0.5);
+    animation: slideDown 0.3s;
+    direction: rtl;
+}
+
+.difficulty-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.difficulty-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(42, 46, 69, 0.6);
+    border: 2px solid var(--space-cadet);
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    color: var(--isabelline);
+    font-family: 'Courier New', monospace;
+    position: relative;
+}
+
+.difficulty-btn:hover {
+    transform: translateX(-5px);
+    box-shadow: 0 0 20px rgba(193, 73, 83, 0.4);
+    background: rgba(42, 46, 69, 0.8);
+}
+
+.difficulty-easy:hover {
+    border-color: #28a428;
+    box-shadow: 0 0 20px rgba(40, 164, 40, 0.5);
+}
+
+.difficulty-medium:hover {
+    border-color: #ffc107;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+}
+
+.difficulty-hard:hover {
+    border-color: var(--rojo);
+    box-shadow: 0 0 20px rgba(193, 73, 83, 0.5);
+}
+
+.difficulty-all:hover {
+    border-color: var(--electric-blue);
+    box-shadow: 0 0 20px rgba(90, 169, 230, 0.5);
+}
+
+.difficulty-emoji {
+    font-size: 36px;
+}
+
+.difficulty-text {
+    font-size: 22px;
+    flex: 1;
+    color: var(--isabelline);
+}
+
+.difficulty-desc {
+    font-size: 14px;
+    color: var(--electric-blue);
+    opacity: 0.8;
+}
+
+.close-difficulty-modal {
+    color: var(--bittersweet-shimmer);
+    float: left;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 1;
+}
+
+.close-difficulty-modal:hover {
+    color: var(--rojo);
+    transform: scale(1.2) rotate(90deg);
+    text-shadow: 0 0 10px var(--rojo);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>

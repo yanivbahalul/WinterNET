@@ -1,6 +1,5 @@
 @page
 @model HelloWorldWeb.Pages.AdminModel
-@using System.Linq
 @{
     Layout = null;
 }
@@ -9,7 +8,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>🔧 ממשק ניהול</title>
+    <title>WinterNET — 🔧 ממשק ניהול</title>
     <link rel="stylesheet" href="/css/site.css" />
     <style>
         body {
@@ -18,34 +17,39 @@
             font-family: "Segoe UI", sans-serif;
             padding: 40px;
             direction: rtl;
-            margin: 0;
         }
         
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(90, 169, 230, 0.03) 2px,
-                    rgba(90, 169, 230, 0.03) 4px
-                );
-            pointer-events: none;
-            z-index: 0;
+        h1 { 
+            font-size: 32px; 
+            margin-bottom: 20px; 
         }
-        h1 { font-size: 32px; margin-bottom: 20px; }
-        h2 { margin-top: 40px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #ffd700; }
+        
+        h2 { 
+            margin-top: 40px; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 5px; 
+            color: #ffd700; 
+        }
+        
         table {
-            width: 100%; border-collapse: collapse; margin-top: 15px;
-            background-color: #1e1e1e; border-radius: 10px; overflow: hidden;
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px;
+            background-color: #1e1e1e; 
+            border-radius: 10px; 
+            overflow: hidden;
         }
+        
         th, td {
-            padding: 12px; border-bottom: 1px solid #333; text-align: center;
+            padding: 12px; 
+            border-bottom: 1px solid #333; 
+            text-align: center;
         }
-        th { background-color: #222; font-weight: bold; }
+        
+        th { 
+            background-color: #222; 
+            font-weight: bold; 
+        }
         tr:nth-child(even) { background-color: #191919; }
         ul li { margin: 8px 0; }
         ul strong { color: #1e90ff; }
@@ -55,12 +59,15 @@
             border-radius: 8px; font-weight: bold;
         }
         .back-to-quiz:hover { background-color: #0077cc; }
+        .background-gif {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; opacity: 0.05; z-index: -1;
+        }
     </style>
 </head>
 <body>
-    <!-- רקע HTML בלבד (ללא GIF) -->
-    <iframe src="/logo/fsociety_matrix_blue.html" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; border: none; pointer-events: none; opacity: 0.1;"></iframe>
-    
+    <a href="/Index" class="back-to-quiz">⬅ חזרה לחידון</a>
+    <img src="/assets/background.gif" class="background-gif" alt="רקע" />
     <h1>📊 ממשק ניהול - Dashboard</h1>
 
     @if (ViewData["SuccessMessage"] != null)
@@ -70,87 +77,39 @@
         </div>
     }
 
-    <h2>✅ סטטיסטיקה כללית</h2>
+    <h2>✅ סטטיסטיקה כללית <span id="last-update" style="font-size: 14px; color: #888;">(מתעדכן...)</span></h2>
     <ul>
-        <li>👥 משתמשים רשומים: <strong>@Model.AllUsers.Count</strong></li>
-        <li>🟢 מחוברים כרגע: <strong>@Model.OnlineUsers.Count</strong></li>
-        <li>🚩 מסומנים כ־Cheaters: <strong>@Model.Cheaters.Count</strong></li>
-        <li>🔒 חסומים: <strong>@Model.BannedUsers.Count</strong></li>
-        <li>📈 ממוצע הצלחה: <strong>@Model.AverageSuccessRate.ToString("0.0")%</strong></li>
+        <li>👥 משתמשים רשומים: <strong id="all-users-count">@Model.AllUsers.Count</strong></li>
+        <li>🟢 מחוברים כרגע: <strong id="online-users-count">@Model.OnlineUsers.Count</strong></li>
+        <li>🚩 מסומנים כ־Cheaters: <strong id="cheaters-count">@Model.Cheaters.Count</strong></li>
+        <li>🔒 חסומים: <strong id="banned-users-count">@Model.BannedUsers.Count</strong></li>
+        <li>📈 ממוצע הצלחה: <strong id="average-success-rate">@Model.AverageSuccessRate.ToString("0.0")%</strong></li>
     </ul>
 
-    <h2>🎯 סטטיסטיקת שאלות לפי רמת קושי</h2>
-    
-    @if (Model.QuestionDifficulties == null || !Model.QuestionDifficulties.Any())
-    {
-        <div style="background-color: rgba(255, 193, 7, 0.2); border: 2px solid #ffc107; border-radius: 6px; padding: 15px; margin: 15px 0; text-align: center;">
-            <p style="color: #ffc107; font-weight: bold; margin-bottom: 10px;">⚠️ טבלת קושי השאלות ריקה</p>
-            <p style="font-size: 14px; margin-bottom: 15px;">לחץ על הכפתור למטה כדי לאתחל את כל 700 השאלות עם ערכי ברירת מחדל</p>
-            <a href="/api/init-question-difficulties" target="_blank" 
-               style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--electric-blue), var(--cerulean)); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s;"
-               onmouseover="this.style.transform='scale(1.05)'" 
-               onmouseout="this.style.transform='scale(1)'">
-                🎯 אתחל טבלת קושי שאלות
-            </a>
-            <p style="font-size: 12px; color: #888; margin-top: 10px;">זה ייצור רשומה לכל שאלה עם ערכים: medium, 0%, 0 ניסיונות</p>
-        </div>
-    }
-    
-    @if (Model.QuestionDifficulties != null && Model.QuestionDifficulties.Any())
-    {
-        var easyQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "easy").ToList();
-        var mediumQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "medium").ToList();
-        var hardQuestions = Model.QuestionDifficulties.Where(q => q.Difficulty == "hard").ToList();
-        
-        <table style="margin-bottom: 20px;">
-            <tr>
-                <th>רמת קושי</th>
-                <th>מספר שאלות</th>
-                <th>ממוצע הצלחה</th>
-                <th>סה"כ נענו</th>
-            </tr>
-            <tr style="background-color: rgba(40, 164, 40, 0.2);">
-                <td style="color: #28a428; font-weight: bold;">🟢 קל (Easy)</td>
-                <td>@easyQuestions.Count</td>
-                <td>@(easyQuestions.Any() ? easyQuestions.Average(q => q.SuccessRate).ToString("0.0") : "0")%</td>
-                <td>@easyQuestions.Sum(q => q.TotalAttempts)</td>
-            </tr>
-            <tr style="background-color: rgba(255, 193, 7, 0.2);">
-                <td style="color: #ffc107; font-weight: bold;">🟡 בינוני (Medium)</td>
-                <td>@mediumQuestions.Count</td>
-                <td>@(mediumQuestions.Any() ? mediumQuestions.Average(q => q.SuccessRate).ToString("0.0") : "0")%</td>
-                <td>@mediumQuestions.Sum(q => q.TotalAttempts)</td>
-            </tr>
-            <tr style="background-color: rgba(244, 67, 54, 0.2);">
-                <td style="color: #f44336; font-weight: bold;">🔴 קשה (Hard)</td>
-                <td>@hardQuestions.Count</td>
-                <td>@(hardQuestions.Any() ? hardQuestions.Average(q => q.SuccessRate).ToString("0.0") : "0")%</td>
-                <td>@hardQuestions.Sum(q => q.TotalAttempts)</td>
-            </tr>
-        </table>
-        
-        <p style="font-size: 12px; color: #888; margin-top: 10px;">
-            💡 רמת קושי מתעדכנת אוטומטית אחרי 10 ניסיונות: קל ≥65%, בינוני 35-65%, קשה &lt;35%
-        </p>
-    }
-    else
-    {
-        <p style="color: #888; font-style: italic;">אין עדיין נתוני שאלות במערכת</p>
-    }
-
     <h2>📶 משתמשים מחוברים כרגע</h2>
-    <table>
-        <tr><th>שם משתמש</th></tr>
-        @foreach (var user in Model.OnlineUsers)
+    <table id="online-users-table">
+        <tr>
+            <th>מיקום</th>
+            <th>שם משתמש</th>
+            <th>נענו</th>
+            <th>נכונות</th>
+            <th>הצלחה</th>
+        </tr>
+        @for (int i = 0; i < Model.OnlineUsers.Count; i++)
         {
+            var user = Model.OnlineUsers[i];
             <tr>
+                <td>@(i + 1)</td>
                 <td>@user.Username</td>
+                <td>@user.TotalAnswered</td>
+                <td>@user.CorrectAnswers</td>
+                <td>@(user.TotalAnswered > 0 ? ((double)user.CorrectAnswers / user.TotalAnswered).ToString("0%") : "N/A")</td>
             </tr>
         }
     </table>
 
     <h2>🏆 טבלת מובילים</h2>
-    <table>
+    <table id="top-users-table">
         <tr>
             <th>מיקום</th>
             <th>שם משתמש</th>
@@ -199,56 +158,286 @@
         }
     </table>
 
-    <h2>🎯 מערכת דירוג קושי שאלות</h2>
-    <table>
-        <tr>
-            <th>ID שאלה</th>
-            <th>רמת קושי</th>
-            <th>נענתה</th>
-            <th>תשובות נכונות</th>
-            <th>אחוז הצלחה</th>
-            <th>עודכן ב</th>
-        </tr>
-        @if (Model.QuestionDifficulties != null && Model.QuestionDifficulties.Any())
-        {
-            @foreach (var q in Model.QuestionDifficulties.OrderByDescending(q => q.LastUpdated).Take(50))
-            {
-                var successRate = q.TotalAttempts > 0 ? (double)q.CorrectAttempts / q.TotalAttempts * 100 : 0;
-                var difficultyColor = q.Difficulty switch
-                {
-                    "easy" => "#4caf50",
-                    "medium" => "#ff9800",
-                    "hard" => "#f44336",
-                    _ => "#999"
-                };
-                var difficultyText = q.Difficulty switch
-                {
-                    "easy" => "קל",
-                    "medium" => "בינוני",
-                    "hard" => "קשה",
-                    _ => "לא ידוע"
-                };
-                <tr>
-                    <td><a href="/QuestionView?id=@q.QuestionFile" style="color: #1e90ff; text-decoration: none;" target="_blank">@q.QuestionFile</a></td>
-                    <td style="color: @difficultyColor; font-weight: bold;">@difficultyText</td>
-                    <td>@q.TotalAttempts</td>
-                    <td>@q.CorrectAttempts</td>
-                    <td>@successRate.ToString("0.0")%</td>
-                    <td style="font-size: 11px; color: #888;">@q.LastUpdated.ToLocalTime().ToString("dd/MM HH:mm")</td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr><td colspan="6" style="text-align: center; color: #888;">אין נתונים עדיין</td></tr>
-        }
-    </table>
-
-    <div style="margin-top: 40px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-        <a href="/Index" class="back-to-quiz">⬅ חזרה לחידון</a>
-        <a href="/Test?start=1" class="back-to-quiz" style="background-color: #C14953;">🧪 מבחן חדש</a>
-        <a href="/MyExams" class="back-to-quiz" style="background-color: #2A2E45;">📚 המבחנים שלי</a>
-        <a href="/StorageDebug" class="back-to-quiz" style="background-color: #DF2D2F;">🔍 Storage Debug</a>
-    </div>
 </body>
+
+<script>
+let updateInterval;
+
+async function fetchDashboardData() {
+    try {
+        const response = await fetch('/api/dashboard-data?_=' + new Date().getTime());
+        const data = await response.json();
+        
+        // Update statistics
+        document.getElementById('all-users-count').textContent = data.allUsersCount;
+        document.getElementById('online-users-count').textContent = data.onlineUsersCount;
+        document.getElementById('cheaters-count').textContent = data.cheatersCount;
+        document.getElementById('banned-users-count').textContent = data.bannedUsersCount;
+        document.getElementById('average-success-rate').textContent = data.averageSuccessRate + '%';
+        
+        // Update online users table
+        updateTable('online-users-table', data.onlineUsersList, ['rank', 'username', 'totalAnswered', 'correctAnswers', 'successRate']);
+        
+        // Update top users table
+        updateTable('top-users-table', data.topUsersList, ['rank', 'username', 'totalAnswered', 'correctAnswers', 'successRate']);
+        
+        // Baseline time; smooth clock updates separately
+        window.__dashLastUpdateAt = Date.now();
+        
+    } catch (error) {
+        console.warn('Failed to fetch dashboard data:', error);
+        // keep previous time; no clearing
+        document.getElementById('last-update').textContent = '(שגיאה בעדכון - מחכה...)';
+    }
+}
+
+function updateTable(tableId, data, columns) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    
+    // Keep header row, remove data rows
+    const headerRow = table.querySelector('tr');
+    table.innerHTML = '';
+    table.appendChild(headerRow);
+    
+    // Add new data rows
+    data.forEach((user, index) => {
+        const row = table.insertRow();
+        
+        columns.forEach((column, colIndex) => {
+            const cell = row.insertCell();
+            if (column === 'rank') {
+                cell.textContent = index + 1;
+            } else if (column === 'successRate') {
+                cell.textContent = user[column] + '%';
+            } else {
+                cell.textContent = user[column];
+            }
+        });
+    });
+}
+
+// Start auto-update every 3 seconds
+function startAutoUpdate() {
+    updateInterval = setInterval(fetchDashboardData, 200);
+    // Smooth clock every 200ms
+    if (!window.__dashClockInterval) {
+        window.__dashClockInterval = setInterval(() => {
+            const el = document.getElementById('last-update');
+            if (!el) return;
+            const now = new Date();
+            el.textContent = `(עודכן ב-${now.toLocaleTimeString('he-IL')})`;
+        }, 200);
+    }
+}
+
+// Stop auto-update
+function stopAutoUpdate() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+}
+
+// Start updates when page loads
+window.addEventListener('load', () => {
+    fetchDashboardData(); // Initial load
+    startAutoUpdate();
+});
+
+// Stop updates when page is hidden (to save resources)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        stopAutoUpdate();
+    } else {
+        startAutoUpdate();
+    }
+});
+
+// Difficulty filtering functionality
+let currentFilter = null;
+
+function filterByDifficulty(difficulty) {
+    const rows = document.querySelectorAll('.difficulty-row');
+    const titleEl = document.getElementById('difficulty-title');
+    const countEl = document.getElementById('difficulty-count');
+    
+    // Toggle: if clicking the same difficulty, show all
+    if (currentFilter === difficulty) {
+        currentFilter = null;
+        rows.forEach(row => row.style.display = '');
+        titleEl.textContent = 'רשימת שאלות (מעודכן אוטומטית)';
+        countEl.textContent = `מציג את כל ${rows.length} השאלות`;
+        
+        // Reset card styles
+        document.getElementById('difficulty-card-easy').style.opacity = '1';
+        document.getElementById('difficulty-card-medium').style.opacity = '1';
+        document.getElementById('difficulty-card-hard').style.opacity = '1';
+    } else {
+        currentFilter = difficulty;
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            if (row.getAttribute('data-difficulty') === difficulty) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        const diffText = difficulty === 'easy' ? 'קלות' : difficulty === 'medium' ? 'בינוניות' : 'קשות';
+        titleEl.textContent = `שאלות ${diffText} (${visibleCount} שאלות)`;
+        countEl.textContent = `מציג ${visibleCount} שאלות ${diffText}`;
+        
+        // Highlight active card
+        document.getElementById('difficulty-card-easy').style.opacity = difficulty === 'easy' ? '1' : '0.5';
+        document.getElementById('difficulty-card-medium').style.opacity = difficulty === 'medium' ? '1' : '0.5';
+        document.getElementById('difficulty-card-hard').style.opacity = difficulty === 'hard' ? '1' : '0.5';
+    }
+}
+</script>
+
+<!-- Difficulty Management Section -->
+<h2>🎯 ניהול רמות קושי</h2>
+
+@if (TempData["DifficultyMessage"] != null)
+{
+    <div style="background: #d4edda; border: 2px solid #28a745; padding: 15px; margin: 20px 0; border-radius: 8px;">
+        <strong style="color: #155724;">✅ @TempData["DifficultyMessage"]</strong>
+    </div>
+}
+
+@if (TempData["DifficultyError"] != null)
+{
+    <div style="background: #f8d7da; border: 2px solid #dc3545; padding: 15px; margin: 20px 0; border-radius: 8px;">
+        <strong style="color: #721c24;">❌ @TempData["DifficultyError"]</strong>
+    </div>
+}
+
+<div style="background: #1e1e1e; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+    <div style="margin-bottom: 20px;">
+        <h3 style="margin: 0; color: #ffd700;">סיכום רמות קושי</h3>
+        <p style="margin: 5px 0; color: #999; font-size: 14px;">
+            Easy ≥ 65% · Medium 35–65% · Hard &lt; 35%
+        </p>
+        <p style="margin: 10px 0 0 0; color: #4caf50; font-size: 12px;">
+            ⚡ מעודכן אוטומטית בכל טעינת דף
+        </p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px;">
+        <div id="difficulty-card-easy" onclick="filterByDifficulty('easy')" 
+             style="background: #2d5016; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s; border: 2px solid transparent;"
+             onmouseover="this.style.borderColor='#4caf50'; this.style.transform='scale(1.05)'"
+             onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)'">
+            <div style="font-size: 48px; font-weight: bold; color: #4caf50;">@Model.EasyCount</div>
+            <div style="color: #81c784; font-size: 18px; margin-top: 5px;">🟢 קלות</div>
+        </div>
+        <div id="difficulty-card-medium" onclick="filterByDifficulty('medium')" 
+             style="background: #4d3800; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s; border: 2px solid transparent;"
+             onmouseover="this.style.borderColor='#ffa726'; this.style.transform='scale(1.05)'"
+             onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)'">
+            <div style="font-size: 48px; font-weight: bold; color: #ffa726;">@Model.MediumCount</div>
+            <div style="color: #ffb74d; font-size: 18px; margin-top: 5px;">🟡 בינוניות</div>
+        </div>
+        <div id="difficulty-card-hard" onclick="filterByDifficulty('hard')" 
+             style="background: #4d1616; padding: 20px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s; border: 2px solid transparent;"
+             onmouseover="this.style.borderColor='#ef5350'; this.style.transform='scale(1.05)'"
+             onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)'">
+            <div style="font-size: 48px; font-weight: bold; color: #ef5350;">@Model.HardCount</div>
+            <div style="color: #e57373; font-size: 18px; margin-top: 5px;">🔴 קשות</div>
+        </div>
+    </div>
+    
+    @if (Model.DifficultyQuestions.Any())
+    {
+        <h4 id="difficulty-title" style="margin: 20px 0 10px 0;">רשימת שאלות (מעודכן אוטומטית)</h4>
+        <div id="difficulty-table-container" style="max-height: 400px; overflow-y: auto; background: #111; padding: 15px; border-radius: 8px;">
+            <table style="width: 100%; font-size: 13px;">
+                <thead style="position: sticky; top: 0; background: #222; z-index: 10;">
+                    <tr>
+                        <th style="text-align: right;">שאלה</th>
+                        <th>רמת קושי</th>
+                        <th>אחוז הצלחה</th>
+                        <th>ניסיונות</th>
+                        <th>נכונות</th>
+                        <th>עדכון אחרון</th>
+                    </tr>
+                </thead>
+                <tbody id="difficulty-questions-tbody">
+                    @foreach (var q in Model.DifficultyQuestions.Take(500))
+                    {
+                        var diffColor = q.Difficulty switch
+                        {
+                            "easy" => "#4caf50",
+                            "medium" => "#ffa726",
+                            "hard" => "#ef5350",
+                            _ => "#999"
+                        };
+                        var diffText = q.Difficulty switch
+                        {
+                            "easy" => "קל",
+                            "medium" => "בינוני",
+                            "hard" => "קשה",
+                            _ => q.Difficulty
+                        };
+                        
+                        <tr class="difficulty-row" data-difficulty="@q.Difficulty" style="border-bottom: 1px solid #333;">
+                            <td style="text-align: right; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    @q.QuestionFile
+                                    <a href="/QuestionView?id=@Uri.EscapeDataString(q.QuestionFile)" 
+                                       target="_blank"
+                                       title="הצג שאלה"
+                                       style="display: inline-flex; align-items: center; color: #4caf50; text-decoration: none; font-size: 16px; transition: all 0.2s;"
+                                       onmouseover="this.style.color='#81c784'; this.style.transform='scale(1.2)'"
+                                       onmouseout="this.style.color='#4caf50'; this.style.transform='scale(1)'">
+                                        🔍
+                                    </a>
+                                </span>
+                            </td>
+                            <td>
+                                <span style="background: @diffColor; padding: 5px 12px; border-radius: 15px; font-weight: bold; color: white;">
+                                    @diffText
+                                </span>
+                            </td>
+                            <td style="font-weight: bold;">@q.SuccessRate.ToString("F1")%</td>
+                            <td>@q.TotalAttempts</td>
+                            <td>@q.CorrectAttempts</td>
+                            <td style="font-size: 11px; color: #999;">@q.LastUpdated.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <p id="difficulty-count" style="text-align: center; color: #999; margin-top: 10px;">
+            מציג את כל @Model.DifficultyQuestions.Count השאלות
+        </p>
+        
+        <div style="text-align: center; margin-top: 15px;">
+            <a href="/api/init-question-difficulties" 
+               style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #1e90ff, #0077cc); color: white; text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s;"
+               onmouseover="this.style.transform='scale(1.05)'" 
+               onmouseout="this.style.transform='scale(1)'">
+                🎯 אתחל שאלות חדשות
+            </a>
+        </div>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 40px; color: #999;">
+            <p>אין עדיין נתוני רמות קושי במערכת</p>
+            <p style="font-size: 14px; margin-bottom: 20px;">לחץ על הכפתור למטה כדי לאתחל את כל השאלות</p>
+            <a href="/api/init-question-difficulties" 
+               style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #28a745, #20c997); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; transition: all 0.3s;"
+               onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 20px rgba(40, 167, 69, 0.4)'" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                🎯 אתחל טבלת קושי שאלות
+            </a>
+        </div>
+    }
+</div>
+
 </html>

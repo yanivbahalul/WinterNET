@@ -29,10 +29,10 @@ namespace HelloWorldWeb.Services
         private readonly string _url;
         private readonly string _apiKey;
         
-        // Cache for performance
+        // Cache for performance (30 minutes for better performance)
         private Dictionary<string, string>? _difficultyCache;
         private DateTime _cacheExpiry = DateTime.MinValue;
-        private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(30);
 
         public QuestionDifficultyService(IConfiguration config)
         {
@@ -84,7 +84,6 @@ namespace HelloWorldWeb.Services
             // Check cache first
             if (_difficultyCache != null && DateTime.UtcNow < _cacheExpiry)
             {
-                Console.WriteLine($"[QuestionDifficultyService] Using cached difficulties ({_difficultyCache.Count} entries)");
                 return _difficultyCache;
             }
 
@@ -109,8 +108,6 @@ namespace HelloWorldWeb.Services
                 _difficultyCache = items?.ToDictionary(q => q.QuestionFile, q => q.Difficulty) 
                                    ?? new Dictionary<string, string>();
                 _cacheExpiry = DateTime.UtcNow.Add(_cacheDuration);
-                
-                Console.WriteLine($"[QuestionDifficultyService] Loaded {_difficultyCache.Count} difficulties into cache");
                 return _difficultyCache;
             }
             catch (Exception ex)
@@ -163,7 +160,6 @@ namespace HelloWorldWeb.Services
                             >= 35 => "medium",
                             _ => "hard"
                         };
-                        Console.WriteLine($"[QuestionDifficultyService] 📊 Auto-updated '{questionFile}' to '{existing.Difficulty}' (success rate: {existing.SuccessRate}%)");
                     }
                     
                     return await UpdateQuestionDifficulty(existing);
@@ -295,7 +291,6 @@ namespace HelloWorldWeb.Services
                 if (response.IsSuccessStatusCode)
                 {
                     _difficultyCache = null; // Invalidate cache
-                    Console.WriteLine($"[QuestionDifficultyService] ✅ Manually set '{questionFile}' to '{difficulty}'");
                 }
                 
                 return response.IsSuccessStatusCode;
@@ -363,7 +358,6 @@ namespace HelloWorldWeb.Services
         public void ClearCache()
         {
             _difficultyCache = null;
-            Console.WriteLine($"[QuestionDifficultyService] Cache cleared");
         }
     }
 }

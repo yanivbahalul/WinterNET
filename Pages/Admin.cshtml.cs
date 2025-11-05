@@ -26,28 +26,72 @@ namespace HelloWorldWeb.Pages
         public List<User> OnlineUsers { get; set; } = new();
         public List<User> TopUsers { get; set; } = new();
         public double AverageSuccessRate { get; set; }
-        public List<Services.QuestionDifficulty> QuestionDifficulties { get; set; } = new();
+        
+        public List<QuestionDifficulty> DifficultyQuestions { get; set; } = new();
+        public int EasyCount { get; set; }
+        public int MediumCount { get; set; }
+        public int HardCount { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
-            await LoadData();
-            return Page();
+            try
+            {
+                await LoadData();
+                await LoadDifficultyData();
+                return Page();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Admin] Error: {ex.Message}");
+                return StatusCode(500, $"Server error: {ex.Message}");
+            }
+        }
+
+        private async Task LoadDifficultyData()
+        {
+            try
+            {
+                if (_difficultyService != null)
+                {
+                    // Auto-recalculate difficulties to ensure they're always up-to-date
+                    await _difficultyService.RecalculateAllDifficulties();
+                    
+                    // Load updated questions (limit to 50 for performance)
+                    DifficultyQuestions = await _difficultyService.GetAllQuestions(50);
+                    EasyCount = DifficultyQuestions.Count(q => q.Difficulty == "easy");
+                    MediumCount = DifficultyQuestions.Count(q => q.Difficulty == "medium");
+                    HardCount = DifficultyQuestions.Count(q => q.Difficulty == "hard");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Admin] Error: {ex.Message}");
+                DifficultyQuestions = new List<QuestionDifficulty>();
+            }
         }
 
         private async Task LoadData()
         {
-            AllUsers = await _authService.GetAllUsers();
-            Cheaters = AllUsers.Where(u => u.IsCheater).ToList();
-            BannedUsers = AllUsers.Where(u => u.IsBanned).ToList();
-            OnlineUsers = AllUsers.Where(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5)).ToList();
-            TopUsers = AllUsers.OrderByDescending(u => u.CorrectAnswers).Take(5).ToList();
-            AverageSuccessRate = AllUsers.Where(u => u.TotalAnswered > 0)
-                .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
-                .DefaultIfEmpty(0).Average() * 100;
-
-            if (_difficultyService != null)
+            try
             {
-                QuestionDifficulties = await _difficultyService.GetAllQuestions();
+                AllUsers = await _authService.GetAllUsers();
+                Cheaters = AllUsers.Where(u => u.IsCheater).ToList();
+                BannedUsers = AllUsers.Where(u => u.IsBanned).ToList();
+                OnlineUsers = AllUsers.Where(u => u.LastSeen != null && u.LastSeen > DateTime.UtcNow.AddMinutes(-5)).ToList();
+                TopUsers = AllUsers.OrderByDescending(u => u.CorrectAnswers).Take(5).ToList();
+                AverageSuccessRate = AllUsers.Where(u => u.TotalAnswered > 0)
+                    .Select(u => (double)u.CorrectAnswers / u.TotalAnswered)
+                    .DefaultIfEmpty(0).Average() * 100;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Admin] Error: {ex.Message}");
+                Cheaters = new List<User>();
+                BannedUsers = new List<User>();
+                TopUsers = new List<User>();
+                OnlineUsers = new List<User>();
+                AllUsers = new List<User>();
+                AverageSuccessRate = 0;
             }
         }
     }

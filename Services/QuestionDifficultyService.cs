@@ -126,18 +126,28 @@ namespace HelloWorldWeb.Services
                 
                 if (existing == null)
                 {
-                    // Create new record and set difficulty immediately based on first attempt
+                    // Create new record and set difficulty using the same logic as updates
+                    var successRate = isCorrect ? 100 : 0;
+                    var difficulty = successRate switch
+                    {
+                        >= 70 => "easy",
+                        >= 40 => "medium",
+                        _ => "hard"
+                    };
+                    
                     var newRecord = new QuestionDifficulty
                     {
                         QuestionFile = questionFile,
                         TotalAttempts = 1,
                         CorrectAttempts = isCorrect ? 1 : 0,
-                        SuccessRate = isCorrect ? 100 : 0,
-                        Difficulty = isCorrect ? "easy" : "hard", // Immediate rating based on first attempt
+                        SuccessRate = successRate,
+                        Difficulty = difficulty,
                         ManualOverride = false,
                         CreatedAt = DateTime.UtcNow,
                         LastUpdated = DateTime.UtcNow
                     };
+                    
+                    Console.WriteLine($"[QuestionDifficultyService] 📊 Created '{questionFile}' with difficulty '{difficulty}' (success rate: {successRate}%)");
                     
                     return await CreateQuestionDifficulty(newRecord);
                 }

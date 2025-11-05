@@ -144,18 +144,27 @@ namespace HelloWorldWeb.Services
             {
                 // Use REST API directly instead of SDK
                 var url = $"{_supabaseUrl}/storage/v1/object/list/{_bucket}";
-                if (!string.IsNullOrEmpty(prefix))
-                {
-                    url += $"?prefix={Uri.EscapeDataString(prefix)}";
-                }
                 
                 Console.WriteLine($"[Storage] REST API URL: {url}");
+                Console.WriteLine($"[Storage] Bucket: {_bucket}");
+                Console.WriteLine($"[Storage] Prefix: '{prefix}'");
                 
                 var request = new HttpRequestMessage(HttpMethod.Post, url);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _serviceRoleKey);
                 request.Headers.Add("apikey", _serviceRoleKey);
-                request.Content = new StringContent("{\"limit\":1000,\"offset\":0,\"sortBy\":{\"column\":\"name\",\"order\":\"asc\"}}", 
-                    System.Text.Encoding.UTF8, "application/json");
+                
+                // Build request body
+                var requestBody = new
+                {
+                    limit = 1000,
+                    offset = 0,
+                    sortBy = new { column = "name", order = "asc" },
+                    search = prefix ?? ""
+                };
+                var jsonBody = JsonSerializer.Serialize(requestBody);
+                Console.WriteLine($"[Storage] Request body: {jsonBody}");
+                
+                request.Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json");
                 
                 var response = await _httpClient.SendAsync(request);
                 var responseContent = await response.Content.ReadAsStringAsync();

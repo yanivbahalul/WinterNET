@@ -145,7 +145,8 @@ namespace HelloWorldWeb.Services
                 var existing = await GetExplanation(questionFile);
                 
                 HttpResponseMessage response;
-                
+                bool success;
+
                 if (existing != null)
                 {
                     // Update
@@ -155,10 +156,16 @@ namespace HelloWorldWeb.Services
                     };
                     var json = JsonSerializer.Serialize(updateData);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    content.Headers.Add("Prefer", "return=minimal");
-                    
-                    var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}";
-                    response = await _client.PatchAsync(endpoint, content);
+
+                    var request = new HttpRequestMessage(new HttpMethod("PATCH"),
+                        $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}")
+                    {
+                        Content = content
+                    };
+                    request.Headers.Add("Prefer", "return=minimal");
+
+                    response = await _client.SendAsync(request);
+                    success = response.IsSuccessStatusCode;
                 }
                 else
                 {
@@ -172,13 +179,25 @@ namespace HelloWorldWeb.Services
                     };
                     var json = JsonSerializer.Serialize(insertData);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    content.Headers.Add("Prefer", "return=minimal");
-                    
-                    var endpoint = $"{_url}/rest/v1/question_explanations";
-                    response = await _client.PostAsync(endpoint, content);
+                    var request = new HttpRequestMessage(HttpMethod.Post,
+                        $"{_url}/rest/v1/question_explanations")
+                    {
+                        Content = content
+                    };
+                    request.Headers.Add("Prefer", "return=minimal");
+
+                    response = await _client.SendAsync(request);
+                    success = response.IsSuccessStatusCode;
                 }
 
-                return response.IsSuccessStatusCode;
+                if (success)
+                {
+                    // Invalidate cache
+                    _explanationCache = null;
+                    _cacheExpiry = DateTime.MinValue;
+                }
+
+                return success;
             }
             catch (Exception)
             {

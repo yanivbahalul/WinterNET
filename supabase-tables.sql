@@ -157,14 +157,14 @@ ORDER BY
 -- Table: question_explanations
 -- Stores explanations for each question to help users learn from their answers
 CREATE TABLE IF NOT EXISTS question_explanations (
-    QuestionFile TEXT PRIMARY KEY,
-    Explanation TEXT,
-    CreatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    questionfile TEXT PRIMARY KEY,
+    explanation TEXT,
+    createdat TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedat TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Index for faster queries
-CREATE INDEX IF NOT EXISTS idx_question_explanations_updated ON question_explanations(UpdatedAt DESC);
+CREATE INDEX IF NOT EXISTS idx_question_explanations_updated ON question_explanations(updatedat DESC);
 
 -- Trigger to automatically update the 'UpdatedAt' field in question_explanations
 CREATE OR REPLACE FUNCTION update_question_explanations_timestamp()
@@ -172,7 +172,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    NEW.UpdatedAt = CURRENT_TIMESTAMP;
+    NEW.updatedat = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$;

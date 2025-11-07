@@ -49,6 +49,9 @@ namespace HelloWorldWeb.Pages
 
         public async Task<IActionResult> OnPostSaveAsync()
         {
+            QuestionFile = QuestionFile?.Trim();
+            Explanation = Explanation?.Trim();
+
             if (string.IsNullOrWhiteSpace(QuestionFile))
             {
                 TempData["ErrorMessage"] = "לא נבחרה שאלה";
@@ -86,6 +89,8 @@ namespace HelloWorldWeb.Pages
 
         public async Task<IActionResult> OnPostDeleteAsync()
         {
+            QuestionFile = QuestionFile?.Trim();
+
             if (string.IsNullOrWhiteSpace(QuestionFile))
             {
                 TempData["ErrorMessage"] = "לא נבחרה שאלה";
@@ -218,8 +223,8 @@ namespace HelloWorldWeb.Pages
                 {
                     Questions.Add(new QuestionExplanationInfo
                     {
-                        QuestionFile = qFile,
-                        Explanation = explanations.TryGetValue(qFile, out var exp) ? exp : null
+                        QuestionFile = qFile.Trim(),
+                        Explanation = explanations.TryGetValue(qFile.Trim(), out var exp) ? exp : null
                     });
                 }
 

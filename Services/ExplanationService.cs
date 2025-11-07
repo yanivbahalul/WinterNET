@@ -61,6 +61,8 @@ namespace HelloWorldWeb.Services
         /// </summary>
         public async Task<string?> GetExplanation(string questionFile)
         {
+            questionFile = questionFile?.Trim();
+
             if (!IsConfigured || string.IsNullOrWhiteSpace(questionFile))
                 return null;
 
@@ -96,6 +98,15 @@ namespace HelloWorldWeb.Services
 
             try
             {
+                questionFiles = questionFiles
+                    .Where(q => !string.IsNullOrWhiteSpace(q))
+                    .Select(q => q.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (!questionFiles.Any())
+                    return new Dictionary<string, string>();
+
                 // Build filter for multiple questions
                 var filters = string.Join(",", questionFiles.Select(q => $"\"{q}\""));
                 var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=in.({filters})&select=*";
@@ -136,6 +147,9 @@ namespace HelloWorldWeb.Services
         /// </summary>
         public async Task<bool> SaveExplanation(string questionFile, string? explanation)
         {
+            questionFile = questionFile?.Trim();
+            explanation = explanation?.Trim();
+
             if (!IsConfigured || string.IsNullOrWhiteSpace(questionFile))
                 return false;
 
@@ -210,6 +224,8 @@ namespace HelloWorldWeb.Services
         /// </summary>
         public async Task<bool> DeleteExplanation(string questionFile)
         {
+            questionFile = questionFile?.Trim();
+
             if (!IsConfigured || string.IsNullOrWhiteSpace(questionFile))
                 return false;
 

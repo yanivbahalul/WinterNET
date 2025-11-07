@@ -8,7 +8,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>WinterNET — ניהול הסברים</title>
+    <title>WinterNET — הסברים לשאלות</title>
     <link rel="stylesheet" href="/css/site.css" />
     <style>
         body {
@@ -18,296 +18,56 @@
             padding: 40px;
             direction: rtl;
         }
-        
-        h1 { 
-            font-size: 32px; 
-            margin-bottom: 20px; 
-            color: #ffd700;
-        }
-        
-        h2 { 
-            margin-top: 40px; 
-            border-bottom: 2px solid #333; 
-            padding-bottom: 5px; 
-            color: #4caf50; 
-        }
-        
-        .stats-box {
-            display: flex;
-            gap: 30px;
-            margin: 20px 0;
-        }
-        
-        .stat-item {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            flex: 1;
-            text-align: center;
-            border: 2px solid #333;
-        }
-        
-        .stat-number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #4caf50;
-        }
-        
-        .stat-label {
-            margin-top: 5px;
-            color: #999;
-        }
-        
-        .search-box {
-            margin: 20px 0;
-            padding: 15px;
-            background: #1e1e1e;
-            border-radius: 10px;
-            border: 2px solid #333;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #444;
-            border-radius: 6px;
-            background: #222;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: #4caf50;
-        }
-        
-        table {
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 15px;
-            background-color: #1e1e1e; 
-            border-radius: 10px; 
-            overflow: hidden;
-        }
-        
-        th, td {
-            padding: 12px; 
-            border-bottom: 1px solid #333;
-        }
-        
-        th { 
-            background-color: #222; 
-            font-weight: bold;
-            text-align: center;
-        }
-        
+        h1 { font-size: 32px; margin-bottom: 20px; color: #ffd700; }
+        h2 { margin-top: 40px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #4caf50; }
+        p { line-height: 1.8; }
+        .stats-box { display: flex; gap: 30px; margin: 20px 0; }
+        .stat-item { background: #1e1e1e; padding: 20px; border-radius: 10px; flex: 1; text-align: center; border: 2px solid #333; }
+        .stat-number { font-size: 32px; font-weight: bold; color: #4caf50; }
+        .stat-label { margin-top: 6px; color: #bbb; font-size: 14px; }
+        .search-box { margin: 20px 0; padding: 15px; background: #1e1e1e; border-radius: 10px; border: 2px solid #333; }
+        .search-box input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #444; border-radius: 6px; background: #222; color: #fff; font-family: 'Courier New', monospace; }
+        .search-box input:focus { outline: none; border-color: #4caf50; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #1e1e1e; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; border-bottom: 1px solid #333; }
+        th { background-color: #222; font-weight: bold; text-align: center; }
         tr:nth-child(even) { background-color: #191919; }
         tr:hover { background-color: #252525; }
-        
-        .has-explanation {
-            color: #4caf50;
-            font-weight: bold;
-        }
-        
-        .no-explanation {
-            color: #999;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            margin: 0 5px;
-        }
-        
-        .btn-edit {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .btn-edit:hover {
-            background: #1976D2;
-        }
-        
-        .btn-delete {
-            background: #f44336;
-            color: white;
-        }
-        
-        .btn-delete:hover {
-            background: #d32f2f;
-        }
-        
-        .btn-view {
-            background: #4caf50;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .btn-view:hover {
-            background: #45a049;
-        }
-        
-        .btn-back {
-            background: #1e90ff;
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        
-        .btn-back:hover {
-            background: #0077cc;
-        }
-        
-        .message {
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-weight: bold;
-            text-align: center;
-        }
-        
-        .success-message {
-            background-color: #28a428;
-            color: white;
-        }
-        
-        .error-message {
-            background-color: #d32f2f;
-            color: white;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.8);
-        }
-        
-        .modal-content {
-            background-color: #1e1e1e;
-            margin: 5% auto;
-            padding: 30px;
-            border: 2px solid #4caf50;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 800px;
-            color: white;
-        }
-        
-        .close {
-            color: #aaa;
-            float: left;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .close:hover,
-        .close:focus {
-            color: #fff;
-        }
-        
-        textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 15px;
-            font-size: 16px;
-            border: 2px solid #444;
-            border-radius: 6px;
-            background: #222;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            resize: vertical;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #4caf50;
-        }
-        
-        .form-group {
-            margin: 20px 0;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #4caf50;
-        }
-        
-        .background-gif {
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%;
-            object-fit: cover; 
-            opacity: 0.05; 
-            z-index: -1;
-        }
-        
-        .filter-buttons {
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .filter-btn {
-            padding: 10px 20px;
-            margin: 0 5px;
-            border: 2px solid #444;
-            background: #222;
-            color: #fff;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .filter-btn.active {
-            background: #4caf50;
-            border-color: #4caf50;
-        }
-        
-        .filter-btn:hover {
-            background: #333;
-        }
+        .has-explanation { color: #4caf50; font-weight: bold; }
+        .no-explanation { color: #999; }
+        .btn-back { background: #1e90ff; color: white; text-decoration: none; padding: 10px 20px; display: inline-block; margin-bottom: 20px; border-radius: 6px; }
+        .btn-back:hover { background: #0077cc; }
+        pre { direction: ltr; background: #101010; padding: 12px; border-radius: 8px; border: 1px solid #333; color: #f0f0f0; overflow-x: auto; }
+        code { font-family: 'Courier New', monospace; }
+        .info-box { background: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.4); padding: 20px; border-radius: 10px; color: #c8f0c8; margin-bottom: 30px; }
+        .info-box strong { color: #4caf50; }
+        .background-gif { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.05; z-index: -1; }
     </style>
 </head>
 <body>
     <img src="/assets/background.gif" class="background-gif" alt="רקע" />
-    
-    <a href="/Admin" class="btn btn-back">⬅ חזרה לניהול</a>
-    
-    <h1>📝 ניהול הסברים לשאלות</h1>
+    <a href="/Admin" class="btn-back">⬅ חזרה לניהול</a>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="message success-message">
-            @TempData["SuccessMessage"]
-        </div>
-    }
+    <h1>📝 הסברים לשאלות (קריאה בלבד)</h1>
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="message error-message">
-            @TempData["ErrorMessage"]
-        </div>
-    }
+    <div class="info-box">
+        <strong>איך מוסיפים או מעדכנים הסבר?</strong>
+        <p>
+            יש לעדכן ישירות את הטבלה <code>question_explanations</code> במסד הנתונים (Supabase). הקפד ששם הקובץ בעמודת <code>QuestionFile</code> יהיה זהה לחלוטין לשם קובץ השאלה (כולל הסיומת, ללא רווחים או טאבים נוספים).
+        </p>
+        <p>דוגמה לשאילתה (ניתן להריץ ב-SQL Editor של Supabase):</p>
+        <pre>insert into question_explanations ("QuestionFile", "Explanation")
+values ('Screenshot at Nov 05 21-59-18.png', 'ההסבר כאן...')
+on conflict ("QuestionFile")
+do update set "Explanation" = excluded."Explanation",
+              "UpdatedAt" = timezone('utc', now());</pre>
+        <p style="font-size: 14px; color: #b0d5b0;">
+            ניתן לכלול מעברי שורה בטקסט ההסבר. העמודות <code>CreatedAt</code> ו-<code>UpdatedAt</code> מתמלאות אוטומטית.
+        </p>
+    </div>
+
+    <h2>כיסוי נוכחי</h2>
+    <p style="color: #bbb; font-size: 14px;">הטבלה הבאה מוצגת לקריאה בלבד ומציגה אלו שאלות מכוסות בהסבר.</p>
 
     <div class="stats-box">
         <div class="stat-item">
@@ -328,24 +88,17 @@
         </div>
     </div>
 
-    <div class="filter-buttons">
-        <button class="filter-btn active" onclick="filterQuestions('all')">הכל (@Model.TotalQuestions)</button>
-        <button class="filter-btn" onclick="filterQuestions('with')">עם הסבר (@Model.QuestionsWithExplanations)</button>
-        <button class="filter-btn" onclick="filterQuestions('without')">ללא הסבר (@(Model.TotalQuestions - Model.QuestionsWithExplanations))</button>
-    </div>
-
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 חיפוש שאלה..." onkeyup="searchQuestions()">
+        <input type="text" id="searchInput" placeholder="🔍 חיפוש שם קובץ..." onkeyup="searchQuestions()">
     </div>
 
-    <h2>רשימת שאלות</h2>
     <table id="questionsTable">
         <thead>
             <tr>
                 <th style="width: 50px;">#</th>
                 <th style="text-align: right;">שם קובץ</th>
-                <th style="width: 120px;">סטטוס</th>
-                <th style="width: 250px;">פעולות</th>
+                <th style="width: 140px;">סטטוס</th>
+                <th style="text-align: right;">הסבר</th>
             </tr>
         </thead>
         <tbody>
@@ -366,12 +119,14 @@
                             <span class="no-explanation">✗ אין הסבר</span>
                         }
                     </td>
-                    <td style="text-align: center;">
-                        <a href="/QuestionView?id=@Uri.EscapeDataString(q.QuestionFile)" target="_blank" class="btn btn-view">🔍 צפייה</a>
-                        <button class="btn btn-edit" onclick="openEditModal('@q.QuestionFile', '@(q.Explanation?.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\r", "").Replace("\n", "\\n") ?? "")')">✏️ עריכה</button>
+                    <td style="text-align: right; font-size: 13px; color: #ccc; white-space: pre-wrap;">
                         @if (hasExp)
                         {
-                            <button class="btn btn-delete" onclick="confirmDelete('@q.QuestionFile')">🗑️ מחיקה</button>
+                            @q.Explanation
+                        }
+                        else
+                        {
+                            <span style="color: #555; font-style: italic;">—</span>
                         }
                     </td>
                 </tr>
@@ -379,106 +134,16 @@
         </tbody>
     </table>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEditModal()">&times;</span>
-            <h2 style="border: none; margin-top: 0;">עריכת הסבר</h2>
-            <form method="post" asp-page-handler="Save">
-                @Html.AntiForgeryToken()
-                <div class="form-group">
-                    <label>שאלה:</label>
-                    <input type="text" id="modalQuestionFile" name="QuestionFile" readonly 
-                           style="background: #333; border: 2px solid #555; padding: 10px; width: 100%; border-radius: 6px; color: #fff; font-family: 'Courier New', monospace;">
-                </div>
-                <div class="form-group">
-                    <label>הסבר:</label>
-                    <textarea id="modalExplanation" name="Explanation" placeholder="הזן כאן את ההסבר לשאלה..."></textarea>
-                </div>
-                <div style="text-align: center; margin-top: 30px;">
-                    <button type="submit" class="btn btn-edit" style="font-size: 18px; padding: 12px 30px;">💾 שמור</button>
-                    <button type="button" class="btn" style="background: #666;" onclick="closeEditModal()">ביטול</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Delete Form (hidden) -->
-    <form id="deleteForm" method="post" asp-page-handler="Delete" style="display: none;">
-        @Html.AntiForgeryToken()
-        <input type="hidden" id="deleteQuestionFile" name="QuestionFile">
-    </form>
-
     <script>
-        function openEditModal(questionFile, explanation) {
-            document.getElementById('modalQuestionFile').value = questionFile;
-            document.getElementById('modalExplanation').value = explanation.replace(/\\n/g, '\n').replace(/\\'/g, "'");
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        function confirmDelete(questionFile) {
-            if (confirm('האם אתה בטוח שברצונך למחוק את ההסבר לשאלה: ' + questionFile + '?')) {
-                document.getElementById('deleteQuestionFile').value = questionFile;
-                document.getElementById('deleteForm').submit();
-            }
-        }
-
         function searchQuestions() {
             var input = document.getElementById('searchInput');
             var filter = input.value.toLowerCase();
-            var table = document.getElementById('questionsTable');
-            var rows = table.getElementsByClassName('question-row');
+            var rows = document.getElementsByClassName('question-row');
 
             for (var i = 0; i < rows.length; i++) {
                 var row = rows[i];
                 var text = row.textContent || row.innerText;
-                if (text.toLowerCase().indexOf(filter) > -1) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        }
-
-        var currentFilter = 'all';
-
-        function filterQuestions(filter) {
-            currentFilter = filter;
-            var rows = document.getElementsByClassName('question-row');
-            
-            // Update button states
-            var buttons = document.getElementsByClassName('filter-btn');
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove('active');
-            }
-            event.target.classList.add('active');
-            
-            // Filter rows
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                var hasExplanation = row.getAttribute('data-has-explanation') === 'true';
-                
-                if (filter === 'all') {
-                    row.style.display = '';
-                } else if (filter === 'with' && hasExplanation) {
-                    row.style.display = '';
-                } else if (filter === 'without' && !hasExplanation) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        }
-
-        // Close modal when clicking outside of it
-        window.onclick = function(event) {
-            var modal = document.getElementById('editModal');
-            if (event.target == modal) {
-                closeEditModal();
+                row.style.display = text.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
             }
         }
     </script>

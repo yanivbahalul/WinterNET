@@ -205,6 +205,7 @@ namespace HelloWorldWeb.Pages
                 Dictionary<string, string> explanations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 if (_explanationService != null)
                 {
+                    _explanationService.ClearCache();
                     explanations = await _explanationService.GetAllExplanations();
                 }
 

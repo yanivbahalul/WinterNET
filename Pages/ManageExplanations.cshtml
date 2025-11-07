@@ -58,16 +58,16 @@
     <div class="info-box">
         <strong>איך מוסיפים או מעדכנים הסבר?</strong>
         <p>
-            עדכון ההסברים מתבצע ישירות בטבלה <code>question_explanations</code> ב-Supabase. הקפד שהשם בעמודת <code>QuestionFile</code> יהיה זהה לחלוטין לשם קובץ השאלה (כולל הסיומת, ללא רווחים או טאבים).
+            עדכון ההסברים מתבצע ישירות בטבלה <code>question_explanations</code> ב-Supabase. הקפד שהשם בעמודת <code>questionfile</code> יהיה זהה לחלוטין לשם קובץ השאלה (כולל הסיומת, ללא רווחים או טאבים).
         </p>
         <p>דוגמה לשאילתה (SQL Editor):</p>
-        <pre>insert into question_explanations ("QuestionFile", "Explanation")
+        <pre>insert into question_explanations (questionfile, explanation)
 values ('Screenshot at Nov 05 21-59-18.png', 'ההסבר כאן...')
-on conflict ("QuestionFile")
-do update set "Explanation" = excluded."Explanation",
-              "UpdatedAt" = timezone('utc', now());</pre>
+on conflict (questionfile)
+do update set explanation = excluded.explanation,
+              updatedat = timezone('utc', now());</pre>
         <p style="font-size: 14px; color: #b0d5b0;">
-            ניתן להשתמש במעברי שורה בטקסט ההסבר. <code>CreatedAt</code> ו-<code>UpdatedAt</code> מתעדכנים אוטומטית.
+            ניתן להשתמש במעברי שורה בטקסט ההסבר. <code>createdat</code> ו-<code>updatedat</code> מתעדכנים אוטומטית.
         </p>
     </div>
 

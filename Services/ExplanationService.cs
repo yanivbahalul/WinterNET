@@ -268,14 +268,14 @@ namespace HelloWorldWeb.Services
                     PropertyNameCaseInsensitive = true
                 });
 
-                var result = new Dictionary<string, string>();
+                var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 if (explanations != null)
                 {
                     foreach (var item in explanations)
                     {
                         if (!string.IsNullOrWhiteSpace(item.QuestionFile) && !string.IsNullOrWhiteSpace(item.Explanation))
                         {
-                            result[item.QuestionFile] = item.Explanation;
+                            result[item.QuestionFile.Trim()] = item.Explanation;
                         }
                     }
                 }
@@ -284,12 +284,18 @@ namespace HelloWorldWeb.Services
                 _explanationCache = result;
                 _cacheExpiry = DateTime.UtcNow.Add(_cacheDuration);
 
-                return result;
+                return new Dictionary<string, string>(_explanationCache);
             }
             catch (Exception)
             {
                 return new Dictionary<string, string>();
             }
+        }
+
+        public void ClearCache()
+        {
+            _explanationCache = null;
+            _cacheExpiry = DateTime.MinValue;
         }
     }
 }

@@ -368,7 +368,7 @@
                     </td>
                     <td style="text-align: center;">
                         <a href="/QuestionView?id=@Uri.EscapeDataString(q.QuestionFile)" target="_blank" class="btn btn-view">🔍 צפייה</a>
-                        <button class="btn btn-edit" onclick="openEditModal('@q.QuestionFile', '@(q.Explanation?.Replace("'", "\\'").Replace("\n", "\\n") ?? "")')">✏️ עריכה</button>
+                        <button class="btn btn-edit" onclick="openEditModal('@q.QuestionFile', '@(q.Explanation?.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\r", "").Replace("\n", "\\n") ?? "")')">✏️ עריכה</button>
                         @if (hasExp)
                         {
                             <button class="btn btn-delete" onclick="confirmDelete('@q.QuestionFile')">🗑️ מחיקה</button>

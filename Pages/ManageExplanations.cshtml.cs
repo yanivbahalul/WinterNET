@@ -12,11 +12,16 @@ namespace HelloWorldWeb.Pages
     {
         private readonly SupabaseStorageService _storage;
         private readonly ExplanationService _explanationService;
+        private readonly QuestionDifficultyService _difficultyService;
 
-        public ManageExplanationsModel(SupabaseStorageService storage = null, ExplanationService explanationService = null)
+        public ManageExplanationsModel(
+            SupabaseStorageService storage = null,
+            ExplanationService explanationService = null,
+            QuestionDifficultyService difficultyService = null)
         {
             _storage = storage;
             _explanationService = explanationService;
+            _difficultyService = difficultyService;
         }
 
         public class QuestionExplanationInfo
@@ -122,37 +127,72 @@ namespace HelloWorldWeb.Pages
 
             try
             {
-                // Get all question files
-                List<string> allQuestions = new List<string>();
-                
-                if (_storage != null)
+                var questionFiles = new List<string>();
+
+                // Prefer loading from difficulty service (reliable list of questions)
+                if (_difficultyService != null)
                 {
-                    var allImages = await _storage.ListFilesAsync("");
-                    allQuestions = allImages
-                        .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
-                        .OrderBy(f => f)
-                        .ToList();
-                }
-                else
-                {
-                    var imagesDir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "quiz_images");
-                    if (System.IO.Directory.Exists(imagesDir))
+                    try
                     {
-                        allQuestions = System.IO.Directory.GetFiles(imagesDir)
-                            .Where(f => f.EndsWith(".png") || f.EndsWith(".jpg") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
-                            .Select(System.IO.Path.GetFileName)
-                            .OrderBy(f => f)
-                            .ToList();
+                        var difficultyQuestions = await _difficultyService.GetAllQuestions(1000);
+                        if (difficultyQuestions != null && difficultyQuestions.Any())
+                        {
+                            questionFiles = difficultyQuestions
+                                .Select(q => q.QuestionFile)
+                                .Where(q => !string.IsNullOrWhiteSpace(q))
+                                .Distinct(StringComparer.OrdinalIgnoreCase)
+                                .OrderBy(q => q, StringComparer.OrdinalIgnoreCase)
+                                .ToList();
+                        }
+                    }
+                    catch
+                    {
+                        // ignore and fallback to storage/local
                     }
                 }
 
-                // Extract only question files (every 5th image)
-                var questionFiles = new List<string>();
-                for (int i = 0; i < allQuestions.Count; i += 5)
+                // Fallback to storage bucket listing
+                if (!questionFiles.Any())
                 {
-                    if (i < allQuestions.Count)
+                    List<string> allImages = new List<string>();
+
+                    if (_storage != null)
                     {
-                        questionFiles.Add(allQuestions[i]);
+                        var storageImages = await _storage.ListFilesAsync("");
+                        allImages = storageImages
+                            .Where(f => f.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                                        f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                        f.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                        f.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+                    }
+                    else
+                    {
+                        var imagesDir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "quiz_images");
+                        if (System.IO.Directory.Exists(imagesDir))
+                        {
+                            allImages = System.IO.Directory.GetFiles(imagesDir)
+                                .Where(f => f.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                                            f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                            f.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                            f.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                                .Select(System.IO.Path.GetFileName)
+                                .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                                .ToList();
+                        }
+                    }
+
+                    if (allImages.Any())
+                    {
+                        // Assume alphabetical grouping of question + answers (chunks of 5)
+                        for (int i = 0; i < allImages.Count; i += 5)
+                        {
+                            if (i < allImages.Count)
+                            {
+                                questionFiles.Add(allImages[i]);
+                            }
+                        }
                     }
                 }
 
@@ -176,11 +216,12 @@ namespace HelloWorldWeb.Pages
                 TotalQuestions = Questions.Count;
                 QuestionsWithExplanations = Questions.Count(q => q.HasExplanation);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Questions = new List<QuestionExplanationInfo>();
                 TotalQuestions = 0;
                 QuestionsWithExplanations = 0;
+                TempData["ErrorMessage"] = $"שגיאה בטעינת השאלות: {ex.Message}";
             }
         }
     }

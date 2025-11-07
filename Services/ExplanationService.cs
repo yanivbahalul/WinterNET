@@ -1,55 +1,84 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Supabase;
-using Supabase.Postgrest.Models;
-using Supabase.Postgrest.Attributes;
+using Microsoft.Extensions.Configuration;
+
+#nullable enable
 
 namespace HelloWorldWeb.Services
 {
-    [Table("question_explanations")]
-    public class QuestionExplanation : BaseModel
+    public class QuestionExplanation
     {
-        [PrimaryKey("QuestionFile")]
-        [Column("QuestionFile")]
-        public string QuestionFile { get; set; }
-        
-        [Column("Explanation")]
-        public string Explanation { get; set; }
-        
-        [Column("CreatedAt")]
+        public string QuestionFile { get; set; } = string.Empty;
+        public string? Explanation { get; set; }
         public DateTime CreatedAt { get; set; }
-        
-        [Column("UpdatedAt")]
         public DateTime UpdatedAt { get; set; }
     }
 
     public class ExplanationService
     {
-        private readonly Client _supabase;
+        private readonly HttpClient _client;
+        private readonly string _url;
+        private readonly string _apiKey;
+        
+        // Cache for performance
+        private Dictionary<string, string>? _explanationCache;
+        private DateTime _cacheExpiry = DateTime.MinValue;
+        private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(30);
 
-        public ExplanationService(Client supabase)
+        public ExplanationService(IConfiguration config)
         {
-            _supabase = supabase;
+            _url = config["SUPABASE_URL"]!;
+            _apiKey = config["SUPABASE_KEY"]!;
+
+            if (string.IsNullOrWhiteSpace(_url) || string.IsNullOrWhiteSpace(_apiKey))
+            {
+                // Don't throw - allow the app to run without explanations
+                _url = string.Empty;
+                _apiKey = string.Empty;
+            }
+
+            _client = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+            
+            if (!string.IsNullOrWhiteSpace(_apiKey))
+            {
+                _client.DefaultRequestHeaders.Add("apikey", _apiKey);
+                _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+            }
         }
+
+        private bool IsConfigured => !string.IsNullOrWhiteSpace(_url) && !string.IsNullOrWhiteSpace(_apiKey);
 
         /// <summary>
         /// Get explanation for a specific question
         /// </summary>
-        public async Task<string> GetExplanation(string questionFile)
+        public async Task<string?> GetExplanation(string questionFile)
         {
-            if (string.IsNullOrWhiteSpace(questionFile))
+            if (!IsConfigured || string.IsNullOrWhiteSpace(questionFile))
                 return null;
 
             try
             {
-                var response = await _supabase
-                    .From<QuestionExplanation>()
-                    .Where(x => x.QuestionFile == questionFile)
-                    .Single();
+                var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}&select=*";
+                var response = await _client.GetAsync(endpoint);
+                
+                if (!response.IsSuccessStatusCode)
+                    return null;
 
-                return response?.Explanation;
+                var json = await response.Content.ReadAsStringAsync();
+                var explanations = JsonSerializer.Deserialize<List<QuestionExplanation>>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return explanations?.FirstOrDefault()?.Explanation;
             }
             catch (Exception)
             {
@@ -62,22 +91,35 @@ namespace HelloWorldWeb.Services
         /// </summary>
         public async Task<Dictionary<string, string>> GetExplanations(List<string> questionFiles)
         {
-            if (questionFiles == null || !questionFiles.Any())
+            if (!IsConfigured || questionFiles == null || !questionFiles.Any())
                 return new Dictionary<string, string>();
 
             try
             {
-                var response = await _supabase
-                    .From<QuestionExplanation>()
-                    .Filter("QuestionFile", Supabase.Postgrest.Constants.Operator.In, questionFiles)
-                    .Get();
+                // Build filter for multiple questions
+                var filters = string.Join(",", questionFiles.Select(q => $"\"{q}\""));
+                var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=in.({filters})&select=*";
+                
+                var response = await _client.GetAsync(endpoint);
+                
+                if (!response.IsSuccessStatusCode)
+                    return new Dictionary<string, string>();
+
+                var json = await response.Content.ReadAsStringAsync();
+                var explanations = JsonSerializer.Deserialize<List<QuestionExplanation>>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
                 var result = new Dictionary<string, string>();
-                foreach (var item in response.Models)
+                if (explanations != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(item.QuestionFile) && !string.IsNullOrWhiteSpace(item.Explanation))
+                    foreach (var item in explanations)
                     {
-                        result[item.QuestionFile] = item.Explanation;
+                        if (!string.IsNullOrWhiteSpace(item.QuestionFile) && !string.IsNullOrWhiteSpace(item.Explanation))
+                        {
+                            result[item.QuestionFile] = item.Explanation;
+                        }
                     }
                 }
 
@@ -92,40 +134,44 @@ namespace HelloWorldWeb.Services
         /// <summary>
         /// Save or update explanation for a question
         /// </summary>
-        public async Task<bool> SaveExplanation(string questionFile, string explanation)
+        public async Task<bool> SaveExplanation(string questionFile, string? explanation)
         {
-            if (string.IsNullOrWhiteSpace(questionFile))
+            if (!IsConfigured || string.IsNullOrWhiteSpace(questionFile))
                 return false;
 
             try
             {
-                // Check if explanation already exists
-                var existing = await _supabase
-                    .From<QuestionExplanation>()
-                    .Where(x => x.QuestionFile == questionFile)
-                    .Single();
+                // Check if exists
+                var existing = await GetExplanation(questionFile);
+                
+                var data = new
+                {
+                    QuestionFile = questionFile,
+                    Explanation = explanation ?? string.Empty,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response;
+                
                 if (existing != null)
                 {
-                    // Update existing
-                    existing.Explanation = explanation;
-                    existing.UpdatedAt = DateTime.UtcNow;
-                    await existing.Update<QuestionExplanation>();
+                    // Update
+                    var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}";
+                    content.Headers.Add("Prefer", "return=minimal");
+                    response = await _client.PatchAsync(endpoint, content);
                 }
                 else
                 {
-                    // Insert new
-                    var newExplanation = new QuestionExplanation
-                    {
-                        QuestionFile = questionFile,
-                        Explanation = explanation,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    await _supabase.From<QuestionExplanation>().Insert(newExplanation);
+                    // Insert
+                    var endpoint = $"{_url}/rest/v1/question_explanations";
+                    content.Headers.Add("Prefer", "return=minimal");
+                    response = await _client.PostAsync(endpoint, content);
                 }
 
-                return true;
+                return response.IsSuccessStatusCode;
             }
             catch (Exception)
             {
@@ -138,17 +184,15 @@ namespace HelloWorldWeb.Services
         /// </summary>
         public async Task<bool> DeleteExplanation(string questionFile)
         {
-            if (string.IsNullOrWhiteSpace(questionFile))
+            if (!IsConfigured || string.IsNullOrWhiteSpace(questionFile))
                 return false;
 
             try
             {
-                await _supabase
-                    .From<QuestionExplanation>()
-                    .Where(x => x.QuestionFile == questionFile)
-                    .Delete();
+                var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}";
+                var response = await _client.DeleteAsync(endpoint);
 
-                return true;
+                return response.IsSuccessStatusCode;
             }
             catch (Exception)
             {
@@ -161,20 +205,42 @@ namespace HelloWorldWeb.Services
         /// </summary>
         public async Task<Dictionary<string, string>> GetAllExplanations()
         {
+            if (!IsConfigured)
+                return new Dictionary<string, string>();
+
+            // Check cache
+            if (_explanationCache != null && DateTime.UtcNow < _cacheExpiry)
+                return new Dictionary<string, string>(_explanationCache);
+
             try
             {
-                var response = await _supabase
-                    .From<QuestionExplanation>()
-                    .Get();
+                var endpoint = $"{_url}/rest/v1/question_explanations?select=*";
+                var response = await _client.GetAsync(endpoint);
+                
+                if (!response.IsSuccessStatusCode)
+                    return new Dictionary<string, string>();
+
+                var json = await response.Content.ReadAsStringAsync();
+                var explanations = JsonSerializer.Deserialize<List<QuestionExplanation>>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
                 var result = new Dictionary<string, string>();
-                foreach (var item in response.Models)
+                if (explanations != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(item.QuestionFile) && !string.IsNullOrWhiteSpace(item.Explanation))
+                    foreach (var item in explanations)
                     {
-                        result[item.QuestionFile] = item.Explanation;
+                        if (!string.IsNullOrWhiteSpace(item.QuestionFile) && !string.IsNullOrWhiteSpace(item.Explanation))
+                        {
+                            result[item.QuestionFile] = item.Explanation;
+                        }
                     }
                 }
+
+                // Update cache
+                _explanationCache = result;
+                _cacheExpiry = DateTime.UtcNow.Add(_cacheDuration);
 
                 return result;
             }
@@ -185,4 +251,3 @@ namespace HelloWorldWeb.Services
         }
     }
 }
-

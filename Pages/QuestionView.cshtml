@@ -60,18 +60,22 @@
                 @(isCorrect ? "✓ תשובה נכונה!" : "✗ תשובה שגויה")
             </p>
             
-            @* Explanation Tab *@
-            @if (!string.IsNullOrWhiteSpace(Model.Explanation))
-            {
-                <div class="explanation-section" style="margin-top: 20px;">
-                    <button class="explanation-toggle" onclick="toggleExplanation()" style="width: 100%; padding: 15px; background: rgba(193, 73, 83, 0.2); border: 2px solid var(--rojo); border-radius: 4px; color: var(--isabelline); font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-family: 'Courier New', monospace;">
-                        <span id="toggle-icon">▼</span> הסבר
-                    </button>
-                    <div id="explanation-content" class="explanation-content" style="display: none; margin-top: 10px; padding: 20px; background: rgba(11, 0, 20, 0.6); border: 2px solid var(--space-cadet); border-radius: 4px; color: var(--isabelline); line-height: 1.8; white-space: pre-wrap; animation: fadeIn 0.3s;">
+            @* Explanation Tab - Always show in quiz mode *@
+            <div class="explanation-section" style="margin-top: 20px;">
+                <button class="explanation-toggle" onclick="toggleExplanation()" style="width: 100%; padding: 15px; background: rgba(193, 73, 83, 0.2); border: 2px solid var(--rojo); border-radius: 4px; color: var(--isabelline); font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-family: 'Courier New', monospace;">
+                    <span id="toggle-icon">▼</span> הסבר
+                </button>
+                <div id="explanation-content" class="explanation-content" style="display: none; margin-top: 10px; padding: 20px; background: rgba(11, 0, 20, 0.6); border: 2px solid var(--space-cadet); border-radius: 4px; color: var(--isabelline); line-height: 1.8; white-space: pre-wrap; animation: fadeIn 0.3s;">
+                    @if (!string.IsNullOrWhiteSpace(Model.Explanation))
+                    {
                         @Model.Explanation
-                    </div>
+                    }
+                    else
+                    {
+                        <span style="color: #999; font-style: italic;">עדיין לא נרשם הסבר לשאלה זו</span>
+                    }
                 </div>
-            }
+            </div>
         }
     </div>
 

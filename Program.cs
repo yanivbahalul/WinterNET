@@ -51,6 +51,9 @@ builder.Services.AddScoped<TestSessionService>();
 // Question Difficulty Service (Supabase) - Singleton for better caching
 builder.Services.AddSingleton<QuestionDifficultyService>();
 
+// Explanation Service (Supabase) - Singleton for caching explanations
+builder.Services.AddSingleton<ExplanationService>();
+
 // Supabase Storage Service (optional - if using Supabase for images)
 builder.Services.AddSingleton<SupabaseStorageService>(sp =>
 {

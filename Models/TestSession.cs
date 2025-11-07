@@ -9,7 +9,7 @@ namespace HelloWorldWeb.Models
         public string Username { get; set; }
         public DateTime StartedUtc { get; set; }
         public DateTime? CompletedUtc { get; set; }
-        public string Status { get; set; } // "active", "completed", "expired"
+        public string Status { get; set; }
         public string QuestionsJson { get; set; }
         public string AnswersJson { get; set; }
         public int CurrentIndex { get; set; }

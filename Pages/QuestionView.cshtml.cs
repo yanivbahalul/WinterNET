@@ -12,10 +12,12 @@ namespace HelloWorldWeb.Pages
     public class QuestionViewModel : PageModel
     {
         private readonly SupabaseStorageService _storage;
+        private readonly ExplanationService _explanationService;
 
-        public QuestionViewModel(SupabaseStorageService storage = null)
+        public QuestionViewModel(SupabaseStorageService storage = null, ExplanationService explanationService = null)
         {
             _storage = storage;
+            _explanationService = explanationService;
         }
 
         public string QuestionImageUrl { get; set; }
@@ -23,6 +25,7 @@ namespace HelloWorldWeb.Pages
         public string SelectedAnswerKey { get; set; }
         public string CorrectAnswerKey { get; set; } = "correct";
         public bool ShowAnswerResults { get; set; }
+        public string Explanation { get; set; }
 
         public async Task OnGet()
         {
@@ -37,6 +40,12 @@ namespace HelloWorldWeb.Pages
             }
             
             ShowAnswerResults = !string.IsNullOrWhiteSpace(SelectedAnswerKey);
+            
+            // Load explanation if showing results
+            if (ShowAnswerResults && _explanationService != null && !string.IsNullOrWhiteSpace(questionId))
+            {
+                Explanation = await _explanationService.GetExplanation(questionId);
+            }
 
             List<string> group = null;
             if (_storage != null)

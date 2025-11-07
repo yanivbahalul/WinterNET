@@ -45,6 +45,19 @@
             }
         </div>
 
+        @* Explanation Tab *@
+        @if (!string.IsNullOrWhiteSpace(Model.Explanation))
+        {
+            <div class="explanation-section" style="margin-top: 20px;">
+                <button class="explanation-toggle" onclick="toggleExplanation()" style="width: 100%; padding: 15px; background: rgba(193, 73, 83, 0.2); border: 2px solid var(--rojo); border-radius: 4px; color: var(--isabelline); font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-family: 'Courier New', monospace;">
+                    <span id="toggle-icon">▼</span> הסבר
+                </button>
+                <div id="explanation-content" class="explanation-content" style="display: none; margin-top: 10px; padding: 20px; background: rgba(11, 0, 20, 0.6); border: 2px solid var(--space-cadet); border-radius: 4px; color: var(--isabelline); line-height: 1.8; white-space: pre-wrap; animation: fadeIn 0.3s;">
+                    @Model.Explanation
+                </div>
+            </div>
+        }
+
         <div class="button-row">
             <form method="get" action="/TestResults">
                 @if (!string.IsNullOrEmpty(Request.Query["token"]))
@@ -106,7 +119,29 @@
         color: var(--isabelline);
         text-shadow: 0 0 20px var(--rojo);
     }
+    .explanation-toggle:hover {
+        background: rgba(193, 73, 83, 0.4);
+        box-shadow: 0 0 15px rgba(193, 73, 83, 0.3);
+    }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     </style>
+
+    <script>
+    function toggleExplanation() {
+        var content = document.getElementById('explanation-content');
+        var icon = document.getElementById('toggle-icon');
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            icon.textContent = '▲';
+        } else {
+            content.style.display = 'none';
+            icon.textContent = '▼';
+        }
+    }
+    </script>
 
     <script>
     function openImageModal() {

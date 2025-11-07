@@ -23,14 +23,16 @@ namespace HelloWorldWeb.Pages
         private readonly TestSessionService _testSession;
         private readonly EmailService _email;
         private readonly QuestionDifficultyService _difficultyService;
+        private readonly ExplanationService _explanationService;
 
-        public TestModel(SupabaseStorageService storage = null, QuestionStatsService stats = null, TestSessionService testSession = null, EmailService email = null, QuestionDifficultyService difficultyService = null)
+        public TestModel(SupabaseStorageService storage = null, QuestionStatsService stats = null, TestSessionService testSession = null, EmailService email = null, QuestionDifficultyService difficultyService = null, ExplanationService explanationService = null)
         {
             _storage = storage;
             _stats = stats;
             _testSession = testSession;
             _email = email;
             _difficultyService = difficultyService;
+            _explanationService = explanationService;
         }
 
         public bool AnswerChecked { get; set; }
@@ -47,6 +49,7 @@ namespace HelloWorldWeb.Pages
         {
             public string Question { get; set; }
             public Dictionary<string, string> Answers { get; set; }
+            public string Explanation { get; set; }
         }
 
         public class TestAnswer
@@ -368,7 +371,18 @@ namespace HelloWorldWeb.Pages
 
             var all = await LoadAllQuestionGroupsAsync(difficulty);
             FisherYatesShuffle(all);
-            foreach (var g in all.Take(TotalQuestions))
+            
+            var selectedGroups = all.Take(TotalQuestions).ToList();
+            
+            // Load explanations for all selected questions
+            Dictionary<string, string> explanations = new Dictionary<string, string>();
+            if (_explanationService != null && selectedGroups.Any())
+            {
+                var questionFiles = selectedGroups.Select(g => g[0]).ToList();
+                explanations = await _explanationService.GetExplanations(questionFiles);
+            }
+            
+            foreach (var g in selectedGroups)
             {
                 var correct = g[1];
                 var wrong = g.Skip(2).Take(3).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
@@ -381,11 +395,19 @@ namespace HelloWorldWeb.Pages
                 if (wrong.Count > 2) answers.Add(("c", wrong[2]));
                 answers = answers.OrderBy(_ => RandomNumberGenerator.GetInt32(int.MaxValue)).ToList();
 
-                state.Questions.Add(new TestQuestion
+                var question = new TestQuestion
                 {
                     Question = g[0],
                     Answers = answers.ToDictionary(x => x.key, x => x.img)
-                });
+                };
+                
+                // Add explanation if available
+                if (explanations.TryGetValue(g[0], out var explanation))
+                {
+                    question.Explanation = explanation;
+                }
+                
+                state.Questions.Add(question);
             }
 
             return state;

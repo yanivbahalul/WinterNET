@@ -154,3 +154,46 @@ ORDER BY
         ELSE 4
     END;
 
+-- Table: question_explanations
+-- Stores explanations for each question to help users learn from their answers
+CREATE TABLE IF NOT EXISTS question_explanations (
+    QuestionFile TEXT PRIMARY KEY,
+    Explanation TEXT,
+    CreatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for faster queries
+CREATE INDEX IF NOT EXISTS idx_question_explanations_updated ON question_explanations(UpdatedAt DESC);
+
+-- Trigger to automatically update the 'UpdatedAt' field in question_explanations
+CREATE OR REPLACE FUNCTION update_question_explanations_timestamp()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.UpdatedAt = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trigger_update_question_explanations_timestamp ON question_explanations;
+CREATE TRIGGER trigger_update_question_explanations_timestamp
+    BEFORE UPDATE ON question_explanations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_question_explanations_timestamp();
+
+-- Enable Row Level Security
+ALTER TABLE question_explanations ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow all operations on question_explanations" ON question_explanations;
+
+-- RLS Policy for question_explanations
+-- Allow all operations (same pattern as other tables in the system)
+CREATE POLICY "Allow all operations on question_explanations"
+ON question_explanations
+FOR ALL
+USING (true)
+WITH CHECK (true);
+

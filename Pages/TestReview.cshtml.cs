@@ -15,18 +15,21 @@ namespace HelloWorldWeb.Pages
         private const string SessionKey = "TestStateV1";
         private readonly SupabaseStorageService _storage;
         private readonly TestSessionService _testSession;
+        private readonly ExplanationService _explanationService;
 
-        public TestReviewModel(SupabaseStorageService storage = null, TestSessionService testSession = null)
+        public TestReviewModel(SupabaseStorageService storage = null, TestSessionService testSession = null, ExplanationService explanationService = null)
         {
             _storage = storage;
             _testSession = testSession;
+            _explanationService = explanationService;
         }
 
         public string QuestionImageUrl { get; set; }
         public Dictionary<string, string> AnswerImageUrls { get; set; } = new Dictionary<string, string>();
         public string SelectedKey { get; set; }
+        public string Explanation { get; set; }
 
-        public class TestQuestion { public string Question { get; set; } public Dictionary<string, string> Answers { get; set; } }
+        public class TestQuestion { public string Question { get; set; } public Dictionary<string, string> Answers { get; set; } public string Explanation { get; set; } }
         public class TestAnswer { public string SelectedKey { get; set; } public bool IsCorrect { get; set; } }
         public class TestState { public List<TestQuestion> Questions { get; set; } public List<TestAnswer> Answers { get; set; } }
 
@@ -64,6 +67,13 @@ namespace HelloWorldWeb.Pages
             var q = state.Questions[i];
             var a = (state.Answers != null && i < state.Answers.Count) ? state.Answers[i] : null;
             SelectedKey = a?.SelectedKey;
+            
+            // Load explanation
+            Explanation = q.Explanation;
+            if (string.IsNullOrWhiteSpace(Explanation) && _explanationService != null && !string.IsNullOrWhiteSpace(q.Question))
+            {
+                Explanation = await _explanationService.GetExplanation(q.Question);
+            }
 
             if (_storage != null)
             {

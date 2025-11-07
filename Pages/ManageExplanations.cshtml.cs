@@ -197,14 +197,24 @@ namespace HelloWorldWeb.Pages
                 }
 
                 // Get all explanations
-                Dictionary<string, string> explanations = new Dictionary<string, string>();
+                Dictionary<string, string> explanations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 if (_explanationService != null)
                 {
                     explanations = await _explanationService.GetAllExplanations();
                 }
 
+                if (!questionFiles.Any() && explanations.Any())
+                {
+                    // As a safety net, show any questions that already have explanations
+                    questionFiles = explanations.Keys
+                        .Where(k => !string.IsNullOrWhiteSpace(k))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(k => k, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                }
+
                 // Build the questions list
-                foreach (var qFile in questionFiles)
+                foreach (var qFile in questionFiles.Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     Questions.Add(new QuestionExplanationInfo
                     {

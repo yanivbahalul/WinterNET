@@ -84,6 +84,23 @@
         <p style="margin-top:15px; font-size:18px; color:@(Model.IsCorrect ? "#32cd32" : "#ff4c4c"); font-weight: bold;">
             @(Model.IsCorrect ? "תשובה נכונה!" : "תשובה שגויה")
         </p>
+        
+        @* Explanation Tab - Always show in quiz mode *@
+        <div class="explanation-section" style="margin-top: 20px;">
+            <button class="explanation-toggle" onclick="toggleExplanation()" style="width: 100%; padding: 15px; background: rgba(193, 73, 83, 0.2); border: 2px solid var(--rojo); border-radius: 4px; color: var(--isabelline); font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-family: 'Courier New', monospace;">
+                <span id="toggle-icon">▼</span> הסבר
+            </button>
+            <div id="explanation-content" class="explanation-content" style="display: none; margin-top: 10px; padding: 20px; background: rgba(11, 0, 20, 0.6); border: 2px solid var(--space-cadet); border-radius: 4px; color: var(--isabelline); line-height: 1.8; white-space: pre-wrap; animation: fadeIn 0.3s;">
+                @if (!string.IsNullOrWhiteSpace(Model.Explanation))
+                {
+                    @Model.Explanation
+                }
+                else
+                {
+                    <span style="color: #999; font-style: italic;">עדיין לא נרשם הסבר לשאלה זו</span>
+                }
+            </div>
+        </div>
     }
 
     <div class="button-row">
@@ -274,6 +291,20 @@ window.onclick = function(event) {
     const modal = document.getElementById('difficulty-modal');
     if (event.target == modal) {
         closeDifficultyModal();
+    }
+}
+
+function toggleExplanation() {
+    var content = document.getElementById('explanation-content');
+    var icon = document.getElementById('toggle-icon');
+    if (content && icon) {
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            icon.textContent = '▲';
+        } else {
+            content.style.display = 'none';
+            icon.textContent = '▼';
+        }
     }
 }
 </script>

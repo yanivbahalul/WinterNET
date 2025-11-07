@@ -20,13 +20,15 @@ namespace HelloWorldWeb.Pages
         private readonly EmailService _emailService;
         private readonly SupabaseStorageService _storage;
         private readonly QuestionDifficultyService _difficultyService;
+        private readonly ExplanationService _explanationService;
 
-        public IndexModel(AuthService authService, EmailService emailService, SupabaseStorageService storage = null, QuestionDifficultyService difficultyService = null)
+        public IndexModel(AuthService authService, EmailService emailService, SupabaseStorageService storage = null, QuestionDifficultyService difficultyService = null, ExplanationService explanationService = null)
         {
             _authService = authService;
             _emailService = emailService;
             _storage = storage;
             _difficultyService = difficultyService;
+            _explanationService = explanationService;
         }
 
         public bool AnswerChecked { get; set; }
@@ -39,6 +41,7 @@ namespace HelloWorldWeb.Pages
         public string Username { get; set; }
         public string ConnectionStatus { get; set; }
         public int OnlineCount { get; set; }
+        public string Explanation { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -163,6 +166,19 @@ namespace HelloWorldWeb.Pages
                 }
                 catch (Exception)
                 {
+                }
+            }
+            
+            // Load explanation for the answered question
+            if (_explanationService != null && !string.IsNullOrEmpty(questionImage))
+            {
+                try
+                {
+                    Explanation = await _explanationService.GetExplanation(questionImage);
+                }
+                catch (Exception)
+                {
+                    Explanation = null;
                 }
             }
 

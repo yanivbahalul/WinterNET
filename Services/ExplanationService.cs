@@ -144,30 +144,37 @@ namespace HelloWorldWeb.Services
                 // Check if exists
                 var existing = await GetExplanation(questionFile);
                 
-                var data = new
-                {
-                    QuestionFile = questionFile,
-                    Explanation = explanation ?? string.Empty,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                var json = JsonSerializer.Serialize(data);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
                 HttpResponseMessage response;
                 
                 if (existing != null)
                 {
                     // Update
-                    var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}";
+                    var updateData = new
+                    {
+                        Explanation = explanation ?? string.Empty
+                    };
+                    var json = JsonSerializer.Serialize(updateData);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
                     content.Headers.Add("Prefer", "return=minimal");
+                    
+                    var endpoint = $"{_url}/rest/v1/question_explanations?QuestionFile=eq.{Uri.EscapeDataString(questionFile)}";
                     response = await _client.PatchAsync(endpoint, content);
                 }
                 else
                 {
                     // Insert
-                    var endpoint = $"{_url}/rest/v1/question_explanations";
+                    var insertData = new
+                    {
+                        QuestionFile = questionFile,
+                        Explanation = explanation ?? string.Empty,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    var json = JsonSerializer.Serialize(insertData);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
                     content.Headers.Add("Prefer", "return=minimal");
+                    
+                    var endpoint = $"{_url}/rest/v1/question_explanations";
                     response = await _client.PostAsync(endpoint, content);
                 }
 

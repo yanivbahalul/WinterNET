@@ -20,10 +20,10 @@
         }
         h1 { font-size: 32px; margin-bottom: 20px; color: #ffd700; }
         h2 { margin-top: 40px; border-bottom: 2px solid #333; padding-bottom: 5px; color: #4caf50; }
-        p { line-height: 1.8; }
-        .stats-box { display: flex; gap: 30px; margin: 20px 0; }
-        .stat-item { background: #1e1e1e; padding: 20px; border-radius: 10px; flex: 1; text-align: center; border: 2px solid #333; }
-        .stat-number { font-size: 32px; font-weight: bold; color: #4caf50; }
+        p { line-height: 1.7; }
+        .stats-box { display: flex; gap: 30px; margin: 20px 0; flex-wrap: wrap; }
+        .stat-item { background: #1e1e1e; padding: 20px; border-radius: 10px; flex: 1 1 180px; text-align: center; border: 2px solid #333; }
+        .stat-number { font-size: 30px; font-weight: bold; color: #4caf50; }
         .stat-label { margin-top: 6px; color: #bbb; font-size: 14px; }
         .search-box { margin: 20px 0; padding: 15px; background: #1e1e1e; border-radius: 10px; border: 2px solid #333; }
         .search-box input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #444; border-radius: 6px; background: #222; color: #fff; font-family: 'Courier New', monospace; }
@@ -37,11 +37,16 @@
         .no-explanation { color: #999; }
         .btn-back { background: #1e90ff; color: white; text-decoration: none; padding: 10px 20px; display: inline-block; margin-bottom: 20px; border-radius: 6px; }
         .btn-back:hover { background: #0077cc; }
-        pre { direction: ltr; background: #101010; padding: 12px; border-radius: 8px; border: 1px solid #333; color: #f0f0f0; overflow-x: auto; }
+        pre { direction: ltr; background: #101010; padding: 12px; border-radius: 8px; border: 1px solid #333; color: #f0f0f0; overflow-x: auto; font-size: 13px; }
         code { font-family: 'Courier New', monospace; }
-        .info-box { background: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.4); padding: 20px; border-radius: 10px; color: #c8f0c8; margin-bottom: 30px; }
+        .info-box { background: rgba(76, 175, 80, 0.12); border: 1px solid rgba(76, 175, 80, 0.35); padding: 20px; border-radius: 10px; color: #c8f0c8; margin-bottom: 30px; }
         .info-box strong { color: #4caf50; }
         .background-gif { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.05; z-index: -1; }
+        .filter-buttons { margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-btn { padding: 10px 18px; border: 2px solid #444; background: #222; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .filter-btn.active { background: #4caf50; border-color: #4caf50; }
+        .filter-btn:hover { background: #333; }
+        td.explanation-cell { text-align: right; font-size: 13px; color: #ccc; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -53,22 +58,20 @@
     <div class="info-box">
         <strong>איך מוסיפים או מעדכנים הסבר?</strong>
         <p>
-            יש לעדכן ישירות את הטבלה <code>question_explanations</code> במסד הנתונים (Supabase). הקפד ששם הקובץ בעמודת <code>QuestionFile</code> יהיה זהה לחלוטין לשם קובץ השאלה (כולל הסיומת, ללא רווחים או טאבים נוספים).
+            עדכון ההסברים מתבצע ישירות בטבלה <code>question_explanations</code> ב-Supabase. הקפד שהשם בעמודת <code>QuestionFile</code> יהיה זהה לחלוטין לשם קובץ השאלה (כולל הסיומת, ללא רווחים או טאבים).
         </p>
-        <p>דוגמה לשאילתה (ניתן להריץ ב-SQL Editor של Supabase):</p>
+        <p>דוגמה לשאילתה (SQL Editor):</p>
         <pre>insert into question_explanations ("QuestionFile", "Explanation")
 values ('Screenshot at Nov 05 21-59-18.png', 'ההסבר כאן...')
 on conflict ("QuestionFile")
 do update set "Explanation" = excluded."Explanation",
               "UpdatedAt" = timezone('utc', now());</pre>
         <p style="font-size: 14px; color: #b0d5b0;">
-            ניתן לכלול מעברי שורה בטקסט ההסבר. העמודות <code>CreatedAt</code> ו-<code>UpdatedAt</code> מתמלאות אוטומטית.
+            ניתן להשתמש במעברי שורה בטקסט ההסבר. <code>CreatedAt</code> ו-<code>UpdatedAt</code> מתעדכנים אוטומטית.
         </p>
     </div>
 
     <h2>כיסוי נוכחי</h2>
-    <p style="color: #bbb; font-size: 14px;">הטבלה הבאה מוצגת לקריאה בלבד ומציגה אלו שאלות מכוסות בהסבר.</p>
-
     <div class="stats-box">
         <div class="stat-item">
             <div class="stat-number">@Model.TotalQuestions</div>
@@ -86,6 +89,12 @@ do update set "Explanation" = excluded."Explanation",
             <div class="stat-number">@(Model.TotalQuestions > 0 ? ((double)Model.QuestionsWithExplanations / Model.TotalQuestions * 100).ToString("F1") : "0")%</div>
             <div class="stat-label">אחוז כיסוי</div>
         </div>
+    </div>
+
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all" onclick="filterQuestions(event, 'all')">הכל (@Model.TotalQuestions)</button>
+        <button class="filter-btn" data-filter="with" onclick="filterQuestions(event, 'with')">עם הסבר (@Model.QuestionsWithExplanations)</button>
+        <button class="filter-btn" data-filter="without" onclick="filterQuestions(event, 'without')">ללא הסבר (@(Model.TotalQuestions - Model.QuestionsWithExplanations))</button>
     </div>
 
     <div class="search-box">
@@ -119,7 +128,7 @@ do update set "Explanation" = excluded."Explanation",
                             <span class="no-explanation">✗ אין הסבר</span>
                         }
                     </td>
-                    <td style="text-align: right; font-size: 13px; color: #ccc; white-space: pre-wrap;">
+                    <td class="explanation-cell">
                         @if (hasExp)
                         {
                             @q.Explanation
@@ -144,6 +153,26 @@ do update set "Explanation" = excluded."Explanation",
                 var row = rows[i];
                 var text = row.textContent || row.innerText;
                 row.style.display = text.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+
+        function filterQuestions(event, filter) {
+            var buttons = document.getElementsByClassName('filter-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            event.target.classList.add('active');
+
+            var rows = document.getElementsByClassName('question-row');
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var hasExplanation = row.getAttribute('data-has-explanation') === 'true';
+
+                var show = filter === 'all' ||
+                    (filter === 'with' && hasExplanation) ||
+                    (filter === 'without' && !hasExplanation);
+
+                row.style.display = show ? '' : 'none';
             }
         }
     </script>
